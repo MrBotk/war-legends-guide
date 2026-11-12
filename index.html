@@ -15,12 +15,14 @@
 </head>
 <body>
   <header class="topbar">
+    <button type="button" class="mobile-menu-toggle" id="catalog-toggle" aria-label="Открыть каталог" aria-controls="catalog-sidebar" aria-expanded="false"><img src="assets/icon_mobile_menu.png" alt="" aria-hidden="true"></button>
     <a class="brand" href="#" aria-label="War Legends — на главную"><img class="brand-logo" src="assets/war_legends_logo.png" alt="War Legends"></a>
     <nav class="modes" aria-label="Раздел сайта"><button type="button" class="mode active" data-mode="upgrade" aria-pressed="true"><img src="assets/nav_upgrade_book.png" alt="" aria-hidden="true">Прокачка</button><button type="button" class="mode" data-mode="equipment" aria-pressed="false"><img src="assets/nav_equipment_backpack.png" alt="" aria-hidden="true">Экипировка</button></nav>
   </header>
   <main class="layout">
-    <aside class="sidebar">
-      <div class="sidebar-head"><div><span class="eyebrow">СПРАВОЧНИК</span></div><span id="count" class="count" aria-label="Найдено записей"></span></div>
+    <button type="button" class="menu-backdrop" id="catalog-backdrop" aria-label="Закрыть каталог" tabindex="-1" hidden></button>
+    <aside class="sidebar" id="catalog-sidebar" aria-label="Каталог">
+      <div class="sidebar-head"><div><span class="eyebrow">СПРАВОЧНИК</span></div><span id="count" class="count" aria-label="Найдено записей"></span><button type="button" class="mobile-menu-close" id="catalog-close" aria-label="Закрыть каталог">×</button></div>
       <div class="search"><span aria-hidden="true">⌕</span><label class="sr-only" for="search">Поиск в выбранной категории</label><input id="search" type="search" placeholder="Поиск в категории" autocomplete="off"><button type="button" id="clear-search" aria-label="Очистить поиск" hidden>×</button></div>
       <div class="tabs" role="group" aria-label="Категория"><button type="button" data-type="3" class="active" aria-pressed="true"><img src="assets/category_heroes.png" alt="" aria-hidden="true">Герои</button><button type="button" data-type="1" aria-pressed="false"><img src="assets/category_troops.png" alt="" aria-hidden="true">Армия</button><button type="button" data-type="2" aria-pressed="false"><img src="assets/category_buildings.png" alt="" aria-hidden="true">Здания</button><button type="button" data-type="4" aria-pressed="false"><img src="assets/category_scrolls.png" alt="" aria-hidden="true">Свитки</button></div>
       <div id="list" class="entity-list"></div>

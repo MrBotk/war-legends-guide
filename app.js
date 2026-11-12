@@ -8,6 +8,29 @@
   const list = document.querySelector('#list');
   const content = document.querySelector('#content');
   const search = document.querySelector('#search');
+  const root = document.querySelector('html');
+  const catalog = document.querySelector('#catalog-sidebar');
+  const catalogToggle = document.querySelector('#catalog-toggle');
+  const catalogClose = document.querySelector('#catalog-close');
+  const catalogBackdrop = document.querySelector('#catalog-backdrop');
+  let catalogOpen = false;
+  const mobileCatalog = () => !!window.matchMedia?.('(max-width: 700px)').matches;
+  function syncCatalog() {
+    const mobile = mobileCatalog();
+    const open = mobile && catalogOpen;
+    root.classList.toggle('catalog-open', open);
+    catalogToggle.setAttribute('aria-expanded', String(open));
+    catalogToggle.setAttribute('aria-label', open ? 'Закрыть каталог' : 'Открыть каталог');
+    catalogBackdrop.hidden = !open;
+    if (mobile) catalog.setAttribute('aria-hidden', String(!open));
+    else catalog.removeAttribute('aria-hidden');
+  }
+  function closeCatalog() {
+    const wasOpen = catalogOpen && mobileCatalog();
+    catalogOpen = false;
+    syncCatalog();
+    if (wasOpen) catalogToggle.focus({preventScroll:true});
+  }
   let type = 3;
   let chosen = records.find(item => item.type === 3 && item.name === 'Мириэль') || records[0];
   let lastEquipmentChoice = chosen;
@@ -180,6 +203,16 @@
   document.querySelectorAll('.mode').forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.mode;if(mode==='equipment'&&![1,3].includes(chosen.type)){chosen=lastEquipmentChoice;type=chosen.type;search.value='';selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1}document.querySelectorAll('.mode').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button))});syncTabs();renderList();render();document.querySelector('#selection-status').textContent=`${mode==='equipment'?'Экипировка':'Прокачка'}: ${chosen.name}`}));
   search.addEventListener('input',renderList);
   document.querySelector('#clear-search').addEventListener('click',()=>{search.value='';renderList();search.focus()});
-  list.addEventListener('click',event=>{const button=event.target.closest('[data-id]');if(!button)return;chosen=records.find(item=>item.id===button.dataset.id);if([1,3].includes(chosen.type))lastEquipmentChoice=chosen;selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1;renderList();render();document.querySelector('#selection-status').textContent=`Выбрано: ${chosen.name}`;if(window.matchMedia?.('(max-width: 700px)').matches)content.scrollIntoView({block:'start'})});
+  list.addEventListener('click',event=>{const button=event.target.closest('[data-id]');if(!button)return;chosen=records.find(item=>item.id===button.dataset.id);if([1,3].includes(chosen.type))lastEquipmentChoice=chosen;selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1;renderList();render();document.querySelector('#selection-status').textContent=`Выбрано: ${chosen.name}`;if(mobileCatalog()){closeCatalog();content.scrollIntoView({block:'start'})}});
+  catalogToggle.addEventListener('click',()=>{if(!mobileCatalog())return;if(catalogOpen){closeCatalog();return}catalogOpen=true;syncCatalog();catalogClose.focus({preventScroll:true})});
+  catalogClose.addEventListener('click',closeCatalog);
+  catalogBackdrop.addEventListener('click',closeCatalog);
+  document.addEventListener('keydown',event=>{if(event.key==='Escape' && catalogOpen)closeCatalog()});
+  const mobileMedia = window.matchMedia?.('(max-width: 700px)');
+  const onLayoutChange = () => {catalogOpen=false;syncCatalog()};
+  if(mobileMedia?.addEventListener)mobileMedia.addEventListener('change',onLayoutChange);
+  else mobileMedia?.addListener?.(onLayoutChange);
   renderList();render();
+  root.classList.add('mobile-menu-ready');
+  syncCatalog();
 })();
