@@ -1,0 +1,154 @@
+.content-column {
+  min-width: 0;
+}
+
+.mio-banner {
+  position: relative;
+  isolation: isolate;
+  min-height: 220px;
+  margin: 32px 4vw 0;
+  overflow: hidden;
+  border: 1px solid rgba(232, 169, 193, .26);
+  background: linear-gradient(112deg, #29202a 0%, #32242e 49%, #20282c 100%);
+}
+
+.mio-banner::before,
+.mio-banner::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.mio-banner::before {
+  z-index: -1;
+  background: radial-gradient(ellipse at 78% 54%, rgba(223, 133, 174, .24), transparent 47%),
+    radial-gradient(ellipse at 100% 0%, rgba(104, 211, 209, .13), transparent 40%);
+}
+
+.mio-banner::after {
+  z-index: 1;
+  background: linear-gradient(90deg, #29202a 0%, rgba(41, 32, 42, .93) 29%, rgba(41, 32, 42, .27) 58%, transparent 75%);
+}
+
+.mio-banner__copy {
+  position: relative;
+  z-index: 2;
+  width: min(54%, 480px);
+  padding: 27px 0 25px 30px;
+}
+
+.mio-banner__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f0aac5;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.mio-banner__eyebrow span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f5aeca;
+  box-shadow: 0 0 12px #ef86b6;
+}
+
+.mio-banner h2 {
+  margin: 12px 0 9px;
+  color: #fff5f7;
+  font: 400 clamp(24px, 2.4vw, 34px)/1.13 Georgia, serif;
+  letter-spacing: -.5px;
+}
+
+.mio-banner p {
+  max-width: 310px;
+  margin: 0;
+  color: #d4c1cb;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.mio-banner small {
+  display: block;
+  margin-top: 16px;
+  color: #a58e9e;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.mio-banner__character {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  width: min(65%, 500px);
+  height: auto;
+  transform-origin: 60% 50%;
+  filter: drop-shadow(0 8px 14px rgba(240, 128, 184, .12));
+  animation: mio-float 5.5s ease-in-out infinite;
+  pointer-events: none;
+  user-select: none;
+}
+
+.mio-banner__glow {
+  position: absolute;
+  right: 7%;
+  top: -32%;
+  width: 260px;
+  height: 260px;
+  border: 1px solid rgba(247, 183, 209, .16);
+  border-radius: 50%;
+  box-shadow: 0 0 0 25px rgba(243, 173, 202, .025), 0 0 55px rgba(237, 151, 186, .12);
+  animation: mio-glow 4.2s ease-in-out infinite alternate;
+}
+
+.mio-banner__spark {
+  position: absolute;
+  z-index: 2;
+  color: #f8b8d2;
+  animation: mio-sparkle 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mio-banner__spark--one { top: 26px; right: 36%; font-size: 15px; }
+.mio-banner__spark--two { bottom: 22px; right: 9%; font-size: 22px; animation-delay: -1.6s; }
+.content-column > .main-content { padding-top: 27px; }
+
+@keyframes mio-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
+}
+
+@keyframes mio-glow {
+  from { opacity: .55; transform: scale(.96); }
+  to { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes mio-sparkle {
+  0%, 100% { opacity: .4; transform: scale(.7) rotate(0); }
+  50% { opacity: 1; transform: scale(1.12) rotate(12deg); }
+}
+
+@media (max-width: 1000px) {
+  .mio-banner { margin-right: 28px; margin-left: 28px; }
+  .mio-banner__character { top: 0; width: 55%; }
+}
+
+@media (max-width: 700px) {
+  .mio-banner { min-height: 205px; margin: 22px 18px 0; }
+  .mio-banner__copy { width: 58%; padding: 22px 0 21px 18px; }
+  .mio-banner h2 { font-size: 24px; }
+  .mio-banner p { font-size: 11px; }
+  .mio-banner small { margin-top: 12px; }
+  .mio-banner__character { top: 14px; right: -52px; width: 260px; }
+  .mio-banner__glow { right: -40px; }
+  .mio-banner__spark--one { right: 34%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mio-banner__character, .mio-banner__glow, .mio-banner__spark { animation: none; }
+}
