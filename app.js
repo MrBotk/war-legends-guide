@@ -1,3 +1,4 @@
+
 (() => {
   const {records} = window.GAME_DATA;
   const equipment = window.EQUIPMENT_DATA;
