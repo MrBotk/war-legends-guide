@@ -1,0 +1,56 @@
+.mode-talents .layout { grid-template-columns: minmax(0, 1fr); }
+.mode-talents .sidebar { display: none; }
+.mode-talents .main-content { max-width: 1500px; margin: auto; }
+.mode-talents .mobile-menu-toggle { display: none !important; }
+.talents-hero { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:20px 0; }
+.talents-hero h2 { margin:7px 0; color:#f1f6fc; font-size:32px; }
+.talents-hero p,.talent-scroll-hint,.talent-plan-heading p { margin:0; color:#b4c9dc; font-size:12px; line-height:1.5; }
+.talents-hero>img { width:72px; height:72px; object-fit:contain; }
+.talent-leagues { display:flex; gap:6px; overflow-x:auto; padding:2px 2px 9px; }
+.talent-league { display:inline-flex; align-items:center; justify-content:center; gap:4px; flex:none; padding:5px 7px; border:1px solid #526d88; border-radius:4px; background:#1c3048; color:#c6d9e9; font-size:11px; font-weight:700; white-space:nowrap; }
+.talent-league img { display:block; width:23px; height:30px; object-fit:contain; }
+.talent-league:hover,.talent-league.active { border-color:#dec38e; color:#fff1d4; background:linear-gradient(#425c78,#273f59); }
+.talent-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,320px); grid-template-areas:"tree details" "plan details"; grid-template-rows:auto 1fr; gap:10px; align-items:start; margin-top:8px; }
+.talent-tree-panel,.talent-details,.talent-plan { min-width:0; border:1px solid #4b6580; border-radius:8px; background:linear-gradient(145deg,#203750f5,#14253af5); box-shadow:inset 0 1px #ffffff18; }
+.talent-tree-panel { grid-area:tree; padding:16px; overflow:hidden; }
+.talent-panel-heading,.talent-plan-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.talent-panel-heading h3,.talent-plan h3 { margin:5px 0 0; color:#f4f7fb; font-size:20px; }
+.talent-panel-heading>span { color:#a7c1d8; font-size:11px; }
+.talent-scroll { overflow-x:auto; overflow-y:hidden; margin-top:14px; border:1px solid #344c67; background:radial-gradient(ellipse at center,#28486b,#101e30 80%); border-radius:5px; scrollbar-color:#819bb4 #17283a; }
+.talent-canvas { height:318px; position:relative; }
+.talent-canvas svg { position:absolute; inset:0; pointer-events:none; }
+.talent-canvas path { fill:none; stroke:#7197ba; stroke-width:3; opacity:.6; }
+.talent-node { position:absolute; display:grid; grid-template: minmax(0,1fr) / minmax(0,1fr); place-items:center; width:64.6px; height:68.4px; padding:2px; border:2px solid #8295a8; border-radius:8px; background:#172b40; box-shadow:0 4px 10px #030a11a8; touch-action:manipulation; }
+.talent-node.rarity-2 { border-color:#85c995; }.talent-node.rarity-3 { border-color:#b988d3; }
+.talent-node img { display:block; min-width:0; min-height:0; width:100%; height:100%; object-fit:contain; border-radius:5px; }
+@media (min-width:701px) { .talent-node { transform:scale(1.05); } }
+.talent-node:hover,.talent-node.is-selected { outline:2px solid #f0d28f; outline-offset:3px; z-index:2; }
+.talent-node span { position:absolute; right:-5px; bottom:-7px; display:none; width:21px; height:21px; border:1px solid #d4e8d2; border-radius:50%; background:#3b8458; color:white; font-weight:800; line-height:18px; }
+.talent-node.is-planned span { display:block; }
+.talent-scroll-hint { margin-top:9px; font-size:11px; }
+.talent-details { grid-area:details; padding:17px; }
+.talent-detail-heading { display:flex; align-items:center; gap:12px; }
+.talent-detail-heading img { width:72px; height:72px; object-fit:cover; border:1px solid #69839d; border-radius:6px; }
+.talent-detail-heading h3 { margin:5px 0 0; color:#f7f9fc; font-size:17px; line-height:1.3; }
+.talent-description { color:#c4d5e4; font-size:12px; line-height:1.6; }
+.talent-value { display:flex; justify-content:space-between; gap:8px; padding:11px; background:#304963; color:#c9d9e6; font-size:11px; }
+.talent-value strong { color:#c1e8be; font-size:15px; }
+.talent-progress { margin-top:12px; padding:10px 11px; background:#1c324b; color:#bcd0e1; font-size:11px; }
+.talent-progress-line { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.talent-progress-line strong { color:#eaf4fd; text-align:right; }
+.talent-progress-line + .talent-progress-line { margin-top:8px; }
+.talent-progress-track { height:5px; margin:8px 0; overflow:hidden; border-radius:4px; background:#0e1d30; }
+.talent-progress-track span { display:block; height:100%; border-radius:inherit; background:#d7b66e; }
+.talent-details h4 { margin:17px 0 8px; padding-bottom:7px; border-bottom:1px solid #8e805f; color:#ecf3f9; font-size:12px; }
+.talent-costs { display:flex; flex-wrap:wrap; gap:6px; }
+.talent-cost { display:flex; align-items:center; gap:7px; min-width:110px; padding:7px; background:#2c435c; color:#ecf4fb; }
+.talent-cost img { width:30px; height:30px; object-fit:contain; }.talent-cost span { display:grid; gap:3px; }.talent-cost b { font-size:13px; }.talent-cost small { color:#bbcede; font-size:10px; }
+.talent-connections { display:grid; gap:4px; }.talent-connection { padding:8px; border:1px solid #4e6984; background:#253d57; color:#e2edf7; text-align:left; font-size:11px; }.talent-connection small { display:block; padding-top:3px; color:#adc3d7; }
+.talent-clear { padding:10px 12px; border:1px solid #b99c6c; border-radius:4px; background:#31526c; color:#fff4d9; font-weight:700; font-size:11px; }
+.talent-plan-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
+.talent-plan { grid-area:plan; padding:16px; }.talent-plan .talent-costs { margin-top:12px; }.talent-plan-heading p { margin-top:5px; }
+@media(max-width:1050px) { .talent-layout { grid-template-columns:1fr; grid-template-areas:"tree" "details" "plan"; grid-template-rows:auto; }.talent-details { display:block; } }
+@media(max-width:700px) { .talents-hero h2 { font-size:26px; }.talents-hero>img { width:52px; height:52px; }.talent-tree-panel,.talent-details,.talent-plan { padding:11px; }.talent-plan-heading { flex-wrap:wrap; }.talent-plan-actions { justify-content:flex-start; }.mode-talents .topbar .mode { width:53px; font-size:8px; }.mode-talents .brand-logo { max-width:60px; } }
+@media(max-width:370px) { .mode-talents .topbar { gap:4px; padding:0 6px; }.mode-talents .topbar .mode { width:49px; }.mode-talents .brand-logo { max-width:45px; } }
+@media(max-width:700px) { .topbar .mode { width:53px; font-size:8px; }.topbar .modes { gap:3px; } }
+@media(max-width:420px) { .topbar { gap:4px; padding:0 6px; }.topbar .mode { width:48px; }.topbar .brand-logo { max-width:43px; } }

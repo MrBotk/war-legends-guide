@@ -161,6 +161,9 @@
     document.querySelector('#gear-price-table').addEventListener('click',event=>{const selected=event.target.closest('[data-gear-cost-level]');if(!selected)return;equipmentLevel=Number(selected.dataset.gearCostLevel);render();document.querySelector('#gear-price-table [aria-current="true"]').focus({preventScroll:true})});
   }
   function render() {
+    content.onclick = null;
+    content.onchange = null;
+    if(mode==='talents'){window.TalentsPage.render({content,escape,format,picture});return}
     if(mode==='equipment'){renderEquipment();return}
     const item=chosen, current=findLevel(selectedLevel) || item.levels[0], prev=findLevel(current.level-1);
     document.querySelector('#selection-status').textContent=`${item.name}, уровень ${current.level}`;
@@ -201,7 +204,7 @@
     });
   }
   document.querySelectorAll('.tabs button').forEach(button=>button.addEventListener('click',()=>{const nextType=Number(button.dataset.type);if(mode==='equipment'&&![1,3].includes(nextType))return;type=nextType;search.value='';chosen=records.find(item=>item.type===type);if([1,3].includes(type))lastEquipmentChoice=chosen;selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1;syncTabs();renderList();render();document.querySelector('#selection-status').textContent=`${names[type]}: ${chosen.name}`}));
-  document.querySelectorAll('.mode').forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.mode;if(mode==='equipment'&&![1,3].includes(chosen.type)){chosen=lastEquipmentChoice;type=chosen.type;search.value='';selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1}document.querySelectorAll('.mode').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button))});syncTabs();renderList();render();document.querySelector('#selection-status').textContent=`${mode==='equipment'?'Экипировка':'Прокачка'}: ${chosen.name}`}));
+  document.querySelectorAll('.mode').forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.mode;root.classList.toggle('mode-talents',mode==='talents');if(mode==='talents'&&catalogOpen)closeCatalog();if(mode==='equipment'&&![1,3].includes(chosen.type)){chosen=lastEquipmentChoice;type=chosen.type;search.value='';selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1}document.querySelectorAll('.mode').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button))});syncTabs();renderList();render();document.querySelector('#selection-status').textContent=mode==='talents'?'Древо талантов':`${mode==='equipment'?'Экипировка':'Прокачка'}: ${chosen.name}`}));
   search.addEventListener('input',renderList);
   document.querySelector('#clear-search').addEventListener('click',()=>{search.value='';renderList();search.focus()});
   list.addEventListener('click',event=>{const button=event.target.closest('[data-id]');if(!button)return;chosen=records.find(item=>item.id===button.dataset.id);if([1,3].includes(chosen.type))lastEquipmentChoice=chosen;selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1;renderList();render();document.querySelector('#selection-status').textContent=`Выбрано: ${chosen.name}`;if(mobileCatalog()){closeCatalog();content.scrollIntoView({block:'start'})}});
