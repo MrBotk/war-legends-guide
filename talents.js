@@ -47,7 +47,7 @@
     })).join('');
     const circles = nodes.map(node => {
       const info = data.types[node.talent];
-      return `<button type="button" class="talent-node rarity-${info.rarity} ${node.id === current.id ? 'is-selected' : ''} ${state.planned.has(node.id) ? 'is-planned' : ''}" style="left:${node.col*88+11.7}px;top:${node.row*106+16.8}px" data-talent-node="${node.id}" aria-label="${escape(info.name)}" aria-description="${state.planned.has(node.id)?'Добавлен в план':'Не добавлен в план'}. Дважды нажмите, чтобы изменить." aria-pressed="${node.id === current.id}"><img src="assets/${encodeURIComponent(info.icon)}.png" alt=""><span aria-hidden="true">${state.planned.has(node.id)?'✓':''}</span></button>`;
+      return `<button type="button" class="talent-node rarity-${info.rarity} ${node.id === current.id ? 'is-selected' : ''} ${state.planned.has(node.id) ? 'is-planned' : ''}" style="left:calc(${(node.col+.5)/columns*100}% - 32.3px);top:calc(${(node.row*106+51)/318*100}% - 34.2px)" data-talent-node="${node.id}" aria-label="${escape(info.name)}" aria-description="${state.planned.has(node.id)?'Добавлен в план':'Не добавлен в план'}. Дважды нажмите, чтобы изменить." aria-pressed="${node.id === current.id}"><img src="assets/${encodeURIComponent(info.icon)}.png" alt=""><span aria-hidden="true">${state.planned.has(node.id)?'✓':''}</span></button>`;
     }).join('');
     const prerequisites = current.prereq.map(id => {
       const previous = byId.get(id);
@@ -61,7 +61,7 @@
       <header class="talents-hero"><div><span class="eyebrow">ДРЕВО ТАЛАНТОВ</span><h2>Таланты</h2><p>Выберите лигу и талант, чтобы увидеть его эффект и стоимость.</p></div><img src="assets/icon_talents.png" alt=""></header>
       <div class="talent-leagues" role="group" aria-label="Лига">${leagueButtons}</div>
       <div class="talent-layout"><section class="talent-tree-panel"><div class="talent-panel-heading"><div><span class="eyebrow">ВЕТКА РАЗВИТИЯ</span><h3>${escape(league(section))}</h3></div><span>${nodes.length} талантов</span></div>
-        <div class="talent-scroll" tabindex="0" aria-label="Ветка талантов ${escape(league(section))}"><div class="talent-canvas" style="width:${columns*88}px"><svg viewBox="0 0 ${columns*88} 318" width="${columns*88}" height="318" aria-hidden="true">${paths}</svg>${circles}</div></div>
+        <div class="talent-scroll" tabindex="0" aria-label="Ветка талантов ${escape(league(section))}"><div class="talent-canvas" style="--talent-canvas-width:${columns*88}px;--talent-canvas-mobile-width:${columns*88*.8}px"><svg viewBox="0 0 ${columns*88} 318" width="${columns*88}" height="318" aria-hidden="true">${paths}</svg>${circles}</div></div>
         <p class="talent-scroll-hint">Нажмите на талант, чтобы посмотреть его. Двойное нажатие добавит или уберёт его из плана. Ветку можно прокручивать в стороны.</p></section>
         <aside class="talent-details" aria-live="polite"><div class="talent-detail-heading"><img src="assets/${encodeURIComponent(talent.icon)}.png" alt=""><div><span class="gear-quality" data-rarity="${talent.rarity}">${escape(rarityName)}</span><h3>${escape(talent.name)}</h3></div></div>
           <p class="talent-description">${escape(talent.description)}</p><div class="talent-value"><span>Эффект одной ступени</span><strong>${effect(talent.amount)}</strong></div>
