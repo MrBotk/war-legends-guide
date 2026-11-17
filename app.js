@@ -111,13 +111,31 @@
     newZombieLifePerc:['Здоровье призванного зомби',null,'внутр. ед.'],effectDuration:['Длительность эффекта',null,'внутр. ед.'],
     explosion_decr:['Ослабление взрыва',null,'внутр. ед.']
   };
+  // The movement field stores an interval: the game displays 600 / interval per minute.
+  const movementIntervals = {1:8,3:8,5:9,7:7,13:7,17:7,19:6,21:9,22:9,29:8,30:8,39:7,43:8,201:8,203:8,205:5,1001:8,1003:8,1005:7,1007:6,1011:7,1013:7,1019:7,1023:8,1027:8,1029:9,1030:9,1031:10,1041:7,1045:8,1201:8,1203:7,1205:9};
+  const heroAbilityTargets = {
+    51:{ultimate:['190:1','12:102'],passive:['190:2','233:201']},
+    52:{ultimate:['190:3','12:105'],passive:['190:4','12:106','233:214','191:1']},
+    53:{ultimate:['190:5','12:108'],passive:['190:6','233:215']},
+    1051:{ultimate:['190:1001','12:1102','233:202'],passive:['190:1002','12:1103','233:213']},
+    1052:{ultimate:['190:1003','12:1105','233:204'],passive:['190:1004','233:205']},
+    1053:{ultimate:['190:1005','12:1107'],passive:['190:1006','12:1108','233:216']}
+  };
   function actionText(action) {
     if(action.unresolved)return {name:'Неизвестный эффект',value:'—'};
     const hint=(equipment.hints[String(chosen.entity)]||{})[`${action.type}:${action.id}:${action.field}`];
     const fallback=equipmentLabels[action.field] || [action.field,null,'внутр. ед.'];
-    const name=action.field==='speed' && hint?.factor == null ? fallback[0] : (hint?.name || fallback[0]);
-    const group=hint?.group && (hint.showGroup || !['Атака','Защита','Перемещение'].includes(hint.group)) ? `${hint.group} · ` : '';
     const state=hint?.mode ? ` · ${hint.mode}` : '';
+    const interval=action.type===10 && action.field==='speed' ? movementIntervals[action.id] : null;
+    if (interval && action.op==='add' && interval+action.value>0) {
+      const change=600/(interval+action.value)-600/interval;
+      return {name:`Скорость движения${state}`,value:`${change>0?'+':''}${format(change,1)} /мин`};
+    }
+    const name=action.field==='speed' && hint?.factor == null ? fallback[0] : (hint?.name || fallback[0]);
+    const targets=chosen.type===3 ? heroAbilityTargets[chosen.entity] : null;
+    const key=`${action.type}:${action.id}`;
+    const ability=targets?.ultimate.includes(key) ? 'Ульта' : targets?.passive.includes(key) ? 'Пассивка' : '';
+    const group=ability ? `${ability} · ` : hint?.group && (hint.showGroup || !['Атака','Защита','Перемещение'].includes(hint.group)) ? `${hint.group} · ` : '';
     const factor=hint?.factor ?? fallback[1];
     const unit=hint?.factor != null ? hint.unit : fallback[2];
     const amount=action.value*(factor ?? 1);
