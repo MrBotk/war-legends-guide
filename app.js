@@ -134,7 +134,7 @@
     const name=action.field==='speed' && hint?.factor == null ? fallback[0] : (hint?.name || fallback[0]);
     const targets=chosen.type===3 ? heroAbilityTargets[chosen.entity] : null;
     const key=`${action.type}:${action.id}`;
-    const ability=targets?.ultimate.includes(key) ? 'Ульта' : targets?.passive.includes(key) ? 'Пассивка' : '';
+    const ability=targets?.ultimate.includes(key) ? 'Ультимейт' : targets?.passive.includes(key) ? 'Пассивка' : '';
     const group=ability ? `${ability} · ` : hint?.group && (hint.showGroup || !['Атака','Защита','Перемещение'].includes(hint.group)) ? `${hint.group} · ` : '';
     const factor=hint?.factor ?? fallback[1];
     const unit=hint?.factor != null ? hint.unit : fallback[2];
