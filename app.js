@@ -40,6 +40,9 @@
   let selectedSet = null;
   let equipmentLevel = 1;
   let buildingTier = 1;
+  const priceTalentForType = {1:32, 2:31, 3:34, 4:35};
+  const priceTalentLevels = {};
+  try { Object.assign(priceTalentLevels, JSON.parse(window.localStorage.getItem('wl-price-talents') || '{}')); } catch (_) {}
 
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const format = (value, digits = 0) => Number(value).toLocaleString('ru-RU', {maximumFractionDigits: Math.min(3, Math.max(0, digits))});
@@ -77,6 +80,29 @@
   const upgradeStat=(icon,value,label)=>`<div class="upgrade-stat">${picture(icon,'upgrade-stat__icon')}<span class="upgrade-stat__copy"><b>${escape(value)}</b><small>${escape(label)}</small></span></div>`;
   const faction = item => item.faction === 1 ? 'Свет' : item.faction === 2 ? 'Тьма' : 'Нейтральные';
   const findLevel = level => chosen.levels.find(entry => entry.level === level);
+  function priceTalentInfo(id) {
+    const talent=window.TALENTS_DATA?.types[id];
+    const max=window.TALENTS_DATA?.nodes.filter(node=>node.talent===id).length || 0;
+    const level=Math.max(0, Math.min(max, Math.trunc(Number(priceTalentLevels[id]) || 0)));
+    return {talent,max,level,percent:level*(talent?.amount || 0)};
+  }
+  const discountedGold = (gold, percent) => Math.trunc(gold*(100-percent)/100);
+  function priceTalentControl(id) {
+    const {talent,max,level}=priceTalentInfo(id);
+    if (!talent || !max) return '';
+    const options=Array.from({length:max+1},(_,i)=>`<option value="${i}" ${level===i?'selected':''}>${i===0?'Без таланта':`${i}-я ступень · скидка ${i*talent.amount}%`}</option>`).join('');
+    return `<label class="price-talent">${picture(talent.icon,'price-talent__icon')}<span class="price-talent__field"><span>Скидка таланта на золото</span><select id="price-talent" aria-label="${escape(talent.name)}">${options}</select></span></label>`;
+  }
+  function bindPriceTalent(id) {
+    const select=document.querySelector('#price-talent');
+    if (!select) return;
+    select.addEventListener('change',event=>{
+      priceTalentLevels[id]=Math.max(0,Math.min(priceTalentInfo(id).max,Math.trunc(Number(event.target.value)||0)));
+      try { window.localStorage.setItem('wl-price-talents',JSON.stringify(priceTalentLevels)); } catch (_) {}
+      render();
+      document.querySelector('#price-talent')?.focus({preventScroll:true});
+    });
+  }
 
   function renderList() {
     const query = search.value.trim().toLocaleLowerCase('ru');
@@ -168,12 +194,14 @@
     }).join('');
     const bonuses=group[0].setBonuses.map(b=>`<div class="set-bonus ${current.level>=b.level?'unlocked':''}"><div class="bonus-number">${levelBadge(b.level)}</div><div><div class="bonus-title">Все вещи ${b.level}-го уровня</div>${visibleEquipmentActions(b.actions).map(a=>{const text=actionText(a);return `<div class="bonus-effect"><span class="stat-with-icon">${statPicture(text.name,a.field)}<span>${escape(text.name)}</span></span><b>${escape(text.value)}</b></div>`}).join('')}</div><span class="bonus-state">${current.level>=b.level?'ДОСТУПЕН':'ПОЗЖЕ'}</span></div>`).join('');
     const priceLevels=group[0].levels.filter(level=>level.level>=1&&level.level<=10).sort((a,b)=>a.level-b.level);
-    const totalPrice=priceLevels.filter(level=>level.level>1).reduce((total,level)=>({gold:total.gold+level.gold,dust:total.dust+level.dust}),{gold:0,dust:0});
+    const gearDiscount=priceTalentInfo(33).percent;
+    const totalPrice=priceLevels.filter(level=>level.level>1).reduce((total,level)=>({gold:total.gold+discountedGold(level.gold,gearDiscount),dust:total.dust+level.dust}),{gold:0,dust:0});
     const samePrices=group.every(item=>priceLevels.every(level=>item.levels.some(other=>other.level===level.level&&other.gold===level.gold&&other.dust===level.dust)));
-    const gearPriceRows=priceLevels.map(level=>`<tr class="${level.level===current.level?'selected':''}" data-gear-cost-level="${level.level}"><td><button type="button" class="level-link" aria-label="Выбрать уровень предметов ${level.level}" ${level.level===current.level?'aria-current="true"':''}>${levelBadge(level.level)}</button></td><td>${upgradeStat('icon_gold',level.level===1?'—':format(level.gold),'Золото')}</td><td>${upgradeStat('icon_crystal_dust',level.level===1?'—':format(level.dust),'Пыль')}</td></tr>`).join('');
-    const priceSection=`<div class="section-head"><div><span class="eyebrow">03 / ПРОКАЧКА</span><h3>Цена прокачки одной вещи</h3></div></div><p class="summary-note">${samePrices?'Стоимость одинакова для каждой вещи комплекта.':`Стоимость показана для предмета «${escape(group[0].name)}»; цены других вещей могут отличаться.`}</p><div class="table-wrap"><table class="levels" id="gear-price-table" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>Пыль</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(priceLevels.length/2)}">${gearPriceRows}</tbody></table></div><div class="gear-price-total"><div class="gear-price-total__title"><strong>Итого с 1 до 10 уровня</strong><span>За одну вещь</span></div><div class="gear-price-total__values">${upgradeStat('icon_gold',format(totalPrice.gold),'Золото')}${upgradeStat('icon_crystal_dust',format(totalPrice.dust),'Пыль')}</div></div>`;
+    const gearPriceRows=priceLevels.map(level=>`<tr class="${level.level===current.level?'selected':''}" data-gear-cost-level="${level.level}"><td><button type="button" class="level-link" aria-label="Выбрать уровень предметов ${level.level}" ${level.level===current.level?'aria-current="true"':''}>${levelBadge(level.level)}</button></td><td>${upgradeStat('icon_gold',level.level===1?'—':format(discountedGold(level.gold,gearDiscount)),'Золото')}</td><td>${upgradeStat('icon_crystal_dust',level.level===1?'—':format(level.dust),'Пыль')}</td></tr>`).join('');
+    const priceSection=`<div class="section-head price-section-head"><div><span class="eyebrow">03 / ПРОКАЧКА</span><h3>Цена прокачки одной вещи</h3></div>${priceTalentControl(33)}</div><p class="summary-note">${samePrices?'Стоимость одинакова для каждой вещи комплекта.':`Стоимость показана для предмета «${escape(group[0].name)}»; цены других вещей могут отличаться.`}</p><div class="table-wrap"><table class="levels" id="gear-price-table" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>Пыль</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(priceLevels.length/2)}">${gearPriceRows}</tbody></table></div><div class="gear-price-total"><div class="gear-price-total__title"><strong>Итого с 1 до 10 уровня</strong><span>За одну вещь</span></div><div class="gear-price-total__values">${upgradeStat('icon_gold',format(totalPrice.gold),'Золото')}${upgradeStat('icon_crystal_dust',format(totalPrice.dust),'Пыль')}</div></div>`;
     content.innerHTML=heading+`<div class="gear-controls"><label>Комплект<select id="gear-set">${options}</select></label><div class="gear-level-picker"><span class="gear-level-picker__label">Уровень предметов</span><details class="gear-level-select" id="gear-level-picker"><summary id="gear-level-summary" aria-label="Уровень предметов ${current.level}. Выбрать уровень">${levelBadge(current.level)}<span>${current.level} уровень</span><span class="gear-level-chevron" aria-hidden="true">▾</span></summary><div class="gear-level-options" id="gear-level-options" role="group" aria-label="Выбрать уровень предметов">${levelOptions}</div></details></div></div>${missingIcons?`<div class="notice gear-notice">Иконки для ${missingIcons} из ${group.length} вещей этого комплекта пока недоступны.</div>`:''}<div class="section-head"><div><span class="eyebrow">01 / ПРЕДМЕТЫ</span><h3>Вещи комплекта</h3></div><span class="hint">${group.length} предмета</span></div><div class="gear-grid">${cards}</div><div class="section-head"><div><span class="eyebrow">02 / БОНУС КОМПЛЕКТА</span><h3>${escape(group[0].setBonuses[0]?.name || 'Комплект')}</h3></div></div><div class="bonus-list">${bonuses}</div>${priceSection}`;
     document.querySelector('#gear-set').addEventListener('change',event=>{selectedSet=Number(event.target.value);render()});
+    bindPriceTalent(33);
     document.querySelector('#gear-level-options').addEventListener('click',event=>{const selected=event.target.closest('[data-gear-level]');if(!selected)return;equipmentLevel=Number(selected.dataset.gearLevel);render();document.querySelector('#gear-level-summary').focus({preventScroll:true})});
     document.querySelector('#gear-level-options').addEventListener('keydown',event=>{if(event.key==='Escape'){document.querySelector('#gear-level-picker').open=false;document.querySelector('#gear-level-summary').focus({preventScroll:true})}});
     document.querySelector('#gear-price-table').addEventListener('click',event=>{const selected=event.target.closest('[data-gear-cost-level]');if(!selected)return;equipmentLevel=Number(selected.dataset.gearCostLevel);render();document.querySelector('#gear-price-table [aria-current="true"]').focus({preventScroll:true})});
@@ -190,7 +218,9 @@
     const stats=tierStats(current).length ? tierStats(current) : current.core;
     const previous=prev ? (tierStats(prev).length ? tierStats(prev) : prev.core) : [];
     const isScroll=item.type===4;
-    const rows=item.levels.map(level=>{const resource=isScroll?level.books:level.cards;return `<tr class="${level.level===current.level?'selected':''}" data-level="${level.level}"><td><button type="button" class="level-link" aria-label="Выбрать уровень ${level.level}" ${level.level===current.level?'aria-current="true"':''}>${levelBadge(level.level)}</button></td><td>${upgradeStat('icon_gold',level.level===1?'Открытие':format(level.gold),'Золото')}</td><td>${upgradeStat(isScroll?'icon_books':'icon_cards',level.level===1?'—':isScroll&&!resource?'—':format(resource),isScroll?'Книги':'Карточки')}</td></tr>`}).join('');
+    const talentId=priceTalentForType[item.type];
+    const discount=priceTalentInfo(talentId).percent;
+    const rows=item.levels.map(level=>{const resource=isScroll?level.books:level.cards;return `<tr class="${level.level===current.level?'selected':''}" data-level="${level.level}"><td><button type="button" class="level-link" aria-label="Выбрать уровень ${level.level}" ${level.level===current.level?'aria-current="true"':''}>${levelBadge(level.level)}</button></td><td>${upgradeStat('icon_gold',level.level===1?'Открытие':format(discountedGold(level.gold,discount)),'Золото')}</td><td>${upgradeStat(isScroll?'icon_books':'icon_cards',level.level===1?'—':isScroll&&!resource?'—':format(resource),isScroll?'Книги':'Карточки')}</td></tr>`}).join('');
     let details='';
     if(stats.length){
       const grouped=new Map();
@@ -203,7 +233,8 @@
       <div class="hero"><div class="portrait">${picture(item.icon,'',item.name)}</div><div><div class="title-label">${escape(names[item.type].toUpperCase())} · ${escape(faction(item).toUpperCase())}</div><h2>${escape(item.name)}</h2><p class="description">${escape(item.description || 'Характеристики и прокачка.')}</p>${item.iconAvailable?'':'<p class="summary-note">Иконка карточки пока недоступна.</p>'}</div><div class="hero-badge" data-rarity="${escape(item.rarity)}">${escape((rarity[item.rarity]||'').toUpperCase())}</div></div>
       <div class="section-head"><div><span class="eyebrow">01 / ХАРАКТЕРИСТИКИ</span><h3>Характеристики</h3></div><span class="hint">Прирост показан относительно предыдущего уровня</span></div>
       <div class="game-stats-panel"><div class="game-stats-top"><div class="sheet-identity"><span class="game-stats-kicker">${escape(names[item.type].toUpperCase())} / ${escape(item.name.toUpperCase())}</span><strong class="sheet-level-label">Уровень ${levelBadge(current.level,'level-value')}</strong></div><div class="sheet-level"><input id="level-range" type="range" min="1" max="${maxLevel}" value="${current.level}" step="1" aria-label="Уровень ${escape(item.name)}" aria-valuetext="Уровень ${current.level} из ${maxLevel}"><div class="sheet-stepper"><button type="button" id="level-prev" aria-label="Предыдущий уровень" ${current.level<=1?'disabled':''}>−</button><button type="button" id="level-next" aria-label="Следующий уровень" ${current.level>=maxLevel?'disabled':''}>+</button></div></div>${item.buildingTiers?`<label class="tier-control">ТИР ЗДАНИЯ<select id="building-tier" aria-label="Боевой тир здания">${Array.from({length:item.buildingTiers},(_,i)=>`<option value="${i+1}" ${i+1===buildingTier?'selected':''}>Тир ${i+1}</option>`).join('')}</select></label>`:''}</div>${details || '<div class="notice sheet-notice">Подробные характеристики этой карточки пока недоступны.</div>'}</div>
-      <div class="section-head"><div><span class="eyebrow">02 / ТАБЛИЦА УЛУЧШЕНИЙ</span><h3>Все уровни</h3></div></div><div class="table-wrap"><table class="levels" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>${isScroll?'Книги':'Карточки'}</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(item.levels.length/2)}">${rows}</tbody></table></div>`;
+      <div class="section-head price-section-head"><div><span class="eyebrow">02 / ТАБЛИЦА УЛУЧШЕНИЙ</span><h3>Все уровни</h3></div>${priceTalentControl(talentId)}</div><div class="table-wrap"><table class="levels" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>${isScroll?'Книги':'Карточки'}</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(item.levels.length/2)}">${rows}</tbody></table></div>`;
+    bindPriceTalent(talentId);
     if(item.buildingTiers) document.querySelector('#building-tier').addEventListener('change',event=>{buildingTier=Number(event.target.value);render()});
     const range=document.querySelector('#level-range');
     range.addEventListener('input', event => {document.querySelector('#level-value').textContent=event.target.value;range.setAttribute('aria-valuetext',`Уровень ${event.target.value} из ${maxLevel}`)});
