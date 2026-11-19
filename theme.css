@@ -1,7 +1,7 @@
 
 
-@font-face { font-family: 'WarLegendsUI'; src: url('assets/notosans_main.ttf') format('truetype'); font-style: normal; font-weight: 400; font-display: swap; }
-@font-face { font-family: 'WarLegendsUI'; src: url('assets/notosans_main_bold.ttf') format('truetype'); font-style: normal; font-weight: 700; font-display: swap; }
+@font-face { font-family: 'WarLegendsUI'; src: url('assets/notosans_main.woff2') format('woff2'); font-style: normal; font-weight: 400; font-display: swap; }
+@font-face { font-family: 'WarLegendsUI'; src: url('assets/notosans_main_bold.woff2') format('woff2'); font-style: normal; font-weight: 700; font-display: swap; }
 
 :root {
   --bg: #0b1522;
