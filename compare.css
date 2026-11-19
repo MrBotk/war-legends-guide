@@ -145,6 +145,8 @@
   .compare-heading { margin:14px 0; }
   .compare-unit { width:48px; height:48px; }
   .compare-build, .compare-stats { padding:10px; }
+  .compare-preset { grid-template-columns:minmax(0,1fr) 108px; }
+  .compare-preset select[data-compare-all-level] { padding-inline:8px; }
   .topbar .mode { width:57px; font-size:8px; }
   .topbar .modes { gap:3px; }
   .mode[data-mode="compare"] span { font-size:7px; letter-spacing:-.2px; }
@@ -160,6 +162,5 @@
   .topbar { gap:4px; padding-left:6px; padding-right:6px; }
   .topbar .brand-logo { max-width:45px; }
   .topbar .mode { width:52px; }
-  .compare-preset { grid-template-columns:minmax(0,1fr) 82px; }
   .compare-choices { grid-template-columns:minmax(0,1fr); }
 }
