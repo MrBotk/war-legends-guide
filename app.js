@@ -47,8 +47,8 @@
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const language = window.SiteLanguage;
   const format = (value, digits = 0) => Number(value).toLocaleString(language?.locale || 'ru-RU', {maximumFractionDigits: Math.min(3, Math.max(0, digits))});
-  const picture = (name, className = '', alt = '') => `<img class="${className}" src="assets/${encodeURIComponent(name || 'icon_cards')}.png" alt="${escape(alt)}" onerror="this.onerror=null;this.src='assets/icon_cards.png'">`;
-  const levelBadge = (level, id='') => `<span class="level-badge"><img class="level-badge__flag" src="assets/image_card_level_flag_light.png" alt="" aria-hidden="true"><img class="level-badge__gold" src="assets/image_card_level_flag_panel_dark.png" alt="" aria-hidden="true"><img class="level-badge__panel" src="assets/image_card_level_flag_panel_light.png" alt="" aria-hidden="true"><span class="level-badge__number"${id?` id="${escape(id)}"`:''}>${escape(level)}</span></span>`;
+  const picture = (name, className = '', alt = '') => `<img class="${className}" src="assets/${encodeURIComponent(name || 'icon_cards')}.${name === 'health_bar' ? 'png' : 'webp'}" alt="${escape(alt)}" onerror="this.onerror=null;this.src='assets/icon_cards.webp'">`;
+  const levelBadge = (level, id='') => `<span class="level-badge"><img class="level-badge__flag" src="assets/image_card_level_flag_light.webp" alt="" aria-hidden="true"><img class="level-badge__gold" src="assets/image_card_level_flag_panel_dark.webp" alt="" aria-hidden="true"><img class="level-badge__panel" src="assets/image_card_level_flag_panel_light.webp" alt="" aria-hidden="true"><span class="level-badge__number"${id?` id="${escape(id)}"`:''}>${escape(level)}</span></span>`;
   function characteristicIcon(name, field = '') {
     const text = `${name || ''} ${field}`.toLocaleLowerCase('ru');
     if (/крит|crit/.test(text)) return /урон|dmg/.test(text) ? 'icon_deltafield_crit_dmg' : 'icon_deltafield_crit_chance';
@@ -112,7 +112,7 @@
       .some(name => name?.toLocaleLowerCase('ru').includes(query))).sort((a,b)=>factionRank(a)-factionRank(b) || (a.gameOrder ?? Infinity)-(b.gameOrder ?? Infinity) || a.name.localeCompare(b.name,'ru'));
     document.querySelector('#clear-search').hidden = !query;
     let previousFaction = null;
-    list.innerHTML = visible.length ? visible.map(item => {const factionIcon=item.faction===1?'icon_light_faction_logo':item.faction===2?'icon_dark_faction_logo':null;const heading=item.faction!==previousFaction?`<div class="faction-heading" data-faction="${escape(item.faction)}">${factionIcon?`<img src="assets/${factionIcon}.png" alt="" aria-hidden="true">`:''}${escape(faction(item))}</div>`:'';previousFaction=item.faction;return `${heading}<button type="button" class="entity ${item.id===chosen.id?'active':''}" data-id="${escape(item.id)}" aria-pressed="${item.id===chosen.id}">${picture(item.icon,'','')}<span><b>${escape(item.name)}</b><small data-rarity="${escape(item.rarity)}">${escape(rarity[item.rarity] || '')}</small></span><span class="arrow" aria-hidden="true">›</span></button>`}).join('') : '<div class="empty"><b>В этой категории ничего не найдено</b><p>Проверьте имя или выберите другую категорию.</p></div>';
+    list.innerHTML = visible.length ? visible.map(item => {const factionIcon=item.faction===1?'icon_light_faction_logo':item.faction===2?'icon_dark_faction_logo':null;const heading=item.faction!==previousFaction?`<div class="faction-heading" data-faction="${escape(item.faction)}">${factionIcon?`<img src="assets/${factionIcon}.webp" alt="" aria-hidden="true">`:''}${escape(faction(item))}</div>`:'';previousFaction=item.faction;return `${heading}<button type="button" class="entity ${item.id===chosen.id?'active':''}" data-id="${escape(item.id)}" aria-pressed="${item.id===chosen.id}">${picture(item.icon,'','')}<span><b>${escape(item.name)}</b><small data-rarity="${escape(item.rarity)}">${escape(rarity[item.rarity] || '')}</small></span><span class="arrow" aria-hidden="true">›</span></button>`}).join('') : '<div class="empty"><b>В этой категории ничего не найдено</b><p>Проверьте имя или выберите другую категорию.</p></div>';
   }
   function statCard(stat, previous) {
     const delta = previous && typeof previous.value === 'number' ? stat.value - previous.value : 0;
@@ -209,7 +209,7 @@
         <header class="gear-card-top">
           <div class="gear-image ${hasIcon?'':'gear-image--missing'}">
             <span ${hasIcon?'hidden':''}>ИКОНКА<br>НЕДОСТУПНА</span>
-            ${hasIcon?`<img src="assets/${encodeURIComponent(item.icon)}.png" alt="" onerror="this.hidden=true;this.previousElementSibling.hidden=false">`:''}
+            ${hasIcon?`<img src="assets/${encodeURIComponent(item.icon)}.webp" alt="" onerror="this.hidden=true;this.previousElementSibling.hidden=false">`:''}
           </div>
           <div class="gear-card-label">
             <span class="gear-quality" data-rarity="${escape(item.rarity)}">${escape(equipmentRarity[item.rarity] || 'НЕИЗВЕСТНОЕ')}</span>

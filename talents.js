@@ -47,7 +47,7 @@
     })).join('');
     const circles = nodes.map(node => {
       const info = data.types[node.talent];
-      return `<button type="button" class="talent-node rarity-${info.rarity} ${node.id === current.id ? 'is-selected' : ''} ${state.planned.has(node.id) ? 'is-planned' : ''}" style="left:calc(${(node.col+.5)/columns*100}% - 32.3px);top:calc(${(node.row*106+51)/318*100}% - 34.2px)" data-talent-node="${node.id}" aria-label="${escape(info.name)}" aria-description="${state.planned.has(node.id)?'Добавлен в план':'Не добавлен в план'}. Дважды нажмите, чтобы изменить." aria-pressed="${node.id === current.id}"><img src="assets/${encodeURIComponent(info.icon)}.png" alt=""><span aria-hidden="true">${state.planned.has(node.id)?'✓':''}</span></button>`;
+      return `<button type="button" class="talent-node rarity-${info.rarity} ${node.id === current.id ? 'is-selected' : ''} ${state.planned.has(node.id) ? 'is-planned' : ''}" style="left:calc(${(node.col+.5)/columns*100}% - 32.3px);top:calc(${(node.row*106+51)/318*100}% - 34.2px)" data-talent-node="${node.id}" aria-label="${escape(info.name)}" aria-description="${state.planned.has(node.id)?'Добавлен в план':'Не добавлен в план'}. Дважды нажмите, чтобы изменить." aria-pressed="${node.id === current.id}"><img src="assets/${encodeURIComponent(info.icon)}.webp" alt=""><span aria-hidden="true">${state.planned.has(node.id)?'✓':''}</span></button>`;
     }).join('');
     const prerequisites = current.prereq.map(id => {
       const previous = byId.get(id);
@@ -55,15 +55,15 @@
       const previousLeague = data.milestones.find(item => item.id === previous.milestone);
       return `<button type="button" class="talent-connection" data-talent-go="${previous.id}">${escape(data.types[previous.talent].name)} <small>${escape(league(previousLeague))}</small></button>`;
     }).join('');
-    const leagueButtons = data.milestones.map(item => `<button type="button" class="talent-league ${item.id===section.id?'active':''}" data-talent-league="${item.id}" aria-pressed="${item.id===section.id}"><img src="assets/icon_league_${leagueIcons[Math.floor(item.division / 100)]}_big.png" alt="" aria-hidden="true"><span>${escape(league(item))}</span></button>`).join('');
+    const leagueButtons = data.milestones.map(item => `<button type="button" class="talent-league ${item.id===section.id?'active':''}" data-talent-league="${item.id}" aria-pressed="${item.id===section.id}"><img src="assets/icon_league_${leagueIcons[Math.floor(item.division / 100)]}_big.webp" alt="" aria-hidden="true"><span>${escape(league(item))}</span></button>`).join('');
     const rarityName = {1:'Обычный',2:'Редкий',3:'Эпический'}[talent.rarity] || '';
     content.innerHTML = `<div class="breadcrumb">СПРАВОЧНИК <span> / </span> ТАЛАНТЫ</div>
-      <header class="talents-hero"><div><span class="eyebrow">ДРЕВО ТАЛАНТОВ</span><h2>Таланты</h2><p>Выберите лигу и талант, чтобы увидеть его эффект и стоимость.</p></div><img src="assets/icon_talents.png" alt=""></header>
+      <header class="talents-hero"><div><span class="eyebrow">ДРЕВО ТАЛАНТОВ</span><h2>Таланты</h2><p>Выберите лигу и талант, чтобы увидеть его эффект и стоимость.</p></div><img src="assets/icon_talents.webp" alt=""></header>
       <div class="talent-leagues" role="group" aria-label="Лига">${leagueButtons}</div>
       <div class="talent-layout"><section class="talent-tree-panel"><div class="talent-panel-heading"><div><span class="eyebrow">ВЕТКА РАЗВИТИЯ</span><h3>${escape(league(section))}</h3></div><span>${nodes.length} талантов</span></div>
         <div class="talent-scroll" tabindex="0" aria-label="Ветка талантов ${escape(league(section))}"><div class="talent-canvas" style="--talent-canvas-width:${columns*88}px;--talent-canvas-mobile-width:${columns*88*.8}px"><svg viewBox="0 0 ${columns*88} 318" width="${columns*88}" height="318" aria-hidden="true">${paths}</svg>${circles}</div></div>
         <p class="talent-scroll-hint">Нажмите на талант, чтобы посмотреть его. Двойное нажатие добавит или уберёт его из плана. Ветку можно прокручивать в стороны.</p></section>
-        <aside class="talent-details" aria-live="polite"><div class="talent-detail-heading"><img src="assets/${encodeURIComponent(talent.icon)}.png" alt=""><div><span class="gear-quality" data-rarity="${talent.rarity}">${escape(rarityName)}</span><h3>${escape(talent.name)}</h3></div></div>
+        <aside class="talent-details" aria-live="polite"><div class="talent-detail-heading"><img src="assets/${encodeURIComponent(talent.icon)}.webp" alt=""><div><span class="gear-quality" data-rarity="${talent.rarity}">${escape(rarityName)}</span><h3>${escape(talent.name)}</h3></div></div>
           <p class="talent-description">${escape(talent.description)}</p><div class="talent-value"><span>Эффект одной ступени</span><strong>${effect(talent.amount)}</strong></div>
           <div class="talent-progress"><div class="talent-progress-line"><span>В выбранном плане</span><strong>${progress(plannedAmount)}</strong></div><div class="talent-progress-track" role="progressbar" aria-label="Прогресс таланта в плане" aria-valuemin="0" aria-valuemax="${maxAmount}" aria-valuenow="${plannedAmount}"><span style="width:${maxAmount ? plannedAmount/maxAmount*100 : 0}%"></span></div>${state.planned.has(current.id)?'':`<div class="talent-progress-line"><span>После добавления</span><strong>${progress(afterAmount)}</strong></div>`}</div>
           <h4>Стоимость изучения</h4><div class="talent-costs">${current.costs.map(costView).join('')}</div>

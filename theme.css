@@ -115,7 +115,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .faction-heading[data-faction="1"] { color: #58a9ee; }
 .faction-heading[data-faction="2"] { color: #ed5b78; }
 .faction-heading img { display: block; width: 19px; height: 19px; object-fit: contain; opacity: .9; }
-.faction-heading::after { content: ''; flex: 1; height: 3px; background: url('assets/game-gold-divider.png') center / 100% 3px no-repeat; }
+.faction-heading::after { content: ''; flex: 1; height: 3px; background: url('assets/game-gold-divider.webp') center / 100% 3px no-repeat; }
 .faction-heading:first-child { padding-top: 5px; }
 .empty { color: #dfebf6; }
 
@@ -156,7 +156,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .number strong { color: #f5f8fc; }
 .notice { border-color: #6e7e8e; background: #23364a; color: #dce7f3; }
 .game-stats-panel { background: linear-gradient(160deg, #172538e8 0%, #162438e8 55%, #1e3a61e8 100%); }
-.game-stats-top, .game-stat-title { border-bottom-color: transparent; background-image: url('assets/game-gold-divider.png'); background-repeat: no-repeat; background-position: center bottom; background-size: 100% 3px; }
+.game-stats-top, .game-stat-title { border-bottom-color: transparent; background-image: url('assets/game-gold-divider.webp'); background-repeat: no-repeat; background-position: center bottom; background-size: 100% 3px; }
 .content-column > .main-content:has(> .breadcrumb + .hero) { padding-top: 16px; }
 .hero { margin-top: 12px; padding-top: 12px; padding-bottom: 12px; }
 .hero + .section-head { margin-top: 10px; margin-bottom: 6px; }
