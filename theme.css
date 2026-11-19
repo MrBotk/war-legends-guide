@@ -483,3 +483,49 @@ footer span { color: #dfc392; }
   .gear-items .gear-image { width: 82px; height: 82px; }
   .gear-items .gear-card-level { position: absolute; top: 10px; right: 10px; }
 }
+
+.gear-upgrade-calculator {
+  container-type: inline-size;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #465d79;
+  border-radius: 10px;
+  background: #16283ded;
+}
+
+.gear-upgrade-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 9px;
+}
+
+.gear-upgrade-head h3 { margin: 0; color: #f3f7fc; font-size: 19px; }
+.gear-upgrade-common { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; color: #c3d6e8; font-size: 13px; }
+.gear-upgrade-common select { min-height: 34px; padding: 4px 8px; border: 1px solid #587491; border-radius: 5px; background: #243d57; color: #f2f6fb; font: inherit; }
+.gear-upgrade-common select:disabled { opacity: .65; }
+
+.gear-upgrade-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.gear-upgrade-item { min-width: 0; padding: 8px; border: 1px solid #435c77; border-radius: 7px; background: #1b3047; }
+.gear-upgrade-item:has(input[type=checkbox]:checked) { border-color: #9a865f; background: #233b54; }
+.gear-upgrade-choice { position: relative; display: flex; align-items: center; gap: 8px; min-height: 48px; padding-right: 22px; color: #ebf2fa; font-size: 12px; font-weight: 700; cursor: pointer; }
+.gear-upgrade-choice span { overflow-wrap: anywhere; }
+.gear-upgrade-choice input { position: absolute; top: 0; right: 0; width: 17px; height: 17px; margin: 0; accent-color: #e4c691; cursor: pointer; }
+.gear-upgrade-icon { width: 48px; height: 48px; flex: none; border: 1px solid var(--rarity-color, #7190ad); border-radius: 5px; background: #182c40; object-fit: contain; }
+.gear-upgrade-item:has(input[type=checkbox]:not(:checked)) .gear-upgrade-icon { opacity: .55; }
+.gear-upgrade-level { gap: 7px; margin-top: 4px; }
+.gear-upgrade-level input[type=range] { min-width: 0; min-height: 30px; }
+.gear-upgrade-level input:disabled { opacity: .55; cursor: default; }
+.gear-upgrade-calculator .gear-price-total { margin-top: 8px; }
+.gear-upgrade-calculator .gear-price-total__title { min-width: 0; }
+
+@container (max-width: 479px) {
+  .gear-upgrade-choice { flex-direction: column; justify-content: center; gap: 5px; padding: 0; text-align: center; }
+  .gear-upgrade-common { width: 100%; justify-content: space-between; }
+}
+
+@container (min-width: 790px) {
+  .gear-upgrade-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

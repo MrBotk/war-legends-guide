@@ -39,6 +39,7 @@
   let mode = 'upgrade';
   let selectedSet = null;
   let equipmentLevel = 1;
+  const gearUpgradePlan = new Map();
   let buildingTier = 1;
   const priceTalentForType = {1:32, 2:31, 3:34, 4:35};
   const priceTalentLevels = {};
@@ -78,7 +79,7 @@
     return 'icon_deltafield_target';
   }
   const statPicture = (name, field = '') => picture(characteristicIcon(name,field), 'stat-icon');
-  const upgradeStat=(icon,value,label)=>`<div class="upgrade-stat">${picture(icon,'upgrade-stat__icon')}<span class="upgrade-stat__copy"><b>${escape(value)}</b><small>${escape(label)}</small></span></div>`;
+  const upgradeStat=(icon,value,label,id='')=>`<div class="upgrade-stat">${picture(icon,'upgrade-stat__icon')}<span class="upgrade-stat__copy"><b${id?` id="${escape(id)}"`:''}>${escape(value)}</b><small>${escape(label)}</small></span></div>`;
   const faction = item => item.faction === 1 ? 'Свет' : item.faction === 2 ? 'Тьма' : 'Нейтральные';
   const findLevel = level => chosen.levels.find(entry => entry.level === level);
   function priceTalentInfo(id) {
@@ -174,6 +175,110 @@
       other.type === 10 && other.id === 39 && other.field === action.field && other.op === action.op && other.value === action.value
     )));
   }
+  function gearUpgradeCalculator(group, maxLevel, discount) {
+    const items = group.map(item => {
+      if (!gearUpgradePlan.has(item.id)) gearUpgradePlan.set(item.id, {included:true, level:1});
+      const state = gearUpgradePlan.get(item.id);
+      const max = Math.max(...item.levels.map(step => step.level));
+      return {item, state, max};
+    });
+    function summarize() {
+      const included = items.filter(({state}) => state.included);
+      let gold = 0, dust = 0;
+      for (const {item, state} of included) {
+        for (const step of item.levels) {
+          if (step.level <= 1 || step.level > state.level) continue;
+          gold += discountedGold(step.gold, discount);
+          dust += step.dust;
+        }
+      }
+      const common = included[0]?.state.level;
+      const level = common && included.every(({state}) => state.level === common) ? common : '';
+      return {gold, dust, count:included.length, level};
+    }
+    const {gold, dust, count, level} = summarize();
+    const options = Array.from({length:maxLevel}, (_, i) => i + 1)
+      .map(value => `<option value="${value}" ${value===level?'selected':''}>${value}</option>`).join('');
+    const cards = items.map(({item, state, max}) => `<div class="gear-upgrade-item" data-rarity="${escape(item.rarity)}">
+      <label class="gear-upgrade-choice">
+        ${picture(equipmentIcons.has(item.icon) ? item.icon : null, 'gear-upgrade-icon')}
+        <span>${escape(item.name)}</span>
+        <input id="gear-include-${item.id}" type="checkbox" ${state.included?'checked':''}>
+      </label>
+      <div class="gear-upgrade-level sheet-level">
+        <input id="gear-target-${item.id}" type="range" min="1" max="${max}" step="1" value="${state.level}"
+          aria-label="Уровень предмета «${escape(item.name)}»" aria-valuetext="Уровень ${state.level} из ${max}" ${state.included?'':'disabled'}>
+        <span aria-hidden="true">${levelBadge(state.level,`gear-target-value-${item.id}`)}</span>
+      </div>
+    </div>`).join('');
+    const html = `<section class="gear-upgrade-calculator" aria-labelledby="gear-upgrade-heading">
+      <div class="gear-upgrade-head">
+        <h3 id="gear-upgrade-heading">Калькулятор прокачки</h3>
+        <label class="gear-upgrade-common">Общий уровень выбранных вещей
+          <select id="gear-upgrade-common" ${count?'':'disabled'}>
+            <option value="" disabled ${level===''?'selected':''}>${count?'Разные уровни':'Выберите вещи'}</option>${options}
+          </select>
+        </label>
+      </div>
+      <div class="gear-upgrade-grid">${cards}</div>
+      <div class="gear-price-total" role="status" aria-atomic="true">
+        <div class="gear-price-total__title"><strong>Стоимость прокачки с 1-го уровня</strong><span>Выбрано: <b id="gear-upgrade-count">${count}</b> / ${group.length}</span></div>
+        <div class="gear-price-total__values">${upgradeStat('icon_gold',format(gold),'Золото','gear-upgrade-gold')}${upgradeStat('icon_crystal_dust',format(dust),'Пыль','gear-upgrade-dust')}</div>
+      </div>
+    </section>`;
+
+    function bind() {
+      const common = document.querySelector('#gear-upgrade-common');
+      const countNode = document.querySelector('#gear-upgrade-count');
+      const goldNode = document.querySelector('#gear-upgrade-gold');
+      const dustNode = document.querySelector('#gear-upgrade-dust');
+      const controls = items.map(({item, state, max}) => ({
+        state, max,
+        toggle:document.querySelector(`#gear-include-${item.id}`),
+        slider:document.querySelector(`#gear-target-${item.id}`),
+        badge:document.querySelector(`#gear-target-value-${item.id}`)
+      }));
+      function refresh() {
+        const {gold, dust, count, level} = summarize();
+        common.disabled = count === 0;
+        common.options[0].textContent = count ? 'Разные уровни' : 'Выберите вещи';
+        common.value = String(level);
+        countNode.textContent = count;
+        goldNode.textContent = format(gold);
+        dustNode.textContent = format(dust);
+      }
+      function syncLevel({state, max, slider, badge}) {
+        slider.value = String(state.level);
+        slider.setAttribute('aria-valuetext', `Уровень ${state.level} из ${max}`);
+        badge.textContent = state.level;
+      }
+      common.addEventListener('change', event => {
+        const target = Number(event.target.value);
+        if (target < 1 || target > maxLevel) return;
+        for (const control of controls) {
+          if (!control.state.included) continue;
+          control.state.level = Math.min(control.max, target);
+          syncLevel(control);
+        }
+        refresh();
+      });
+      for (const control of controls) {
+        const {state, toggle, slider} = control;
+        toggle.addEventListener('change', event => {
+          state.included = event.target.checked;
+          slider.disabled = !state.included;
+          refresh();
+        });
+        slider.addEventListener('input', event => {
+          if (!state.included) return;
+          state.level = Number(event.target.value);
+          syncLevel(control);
+          refresh();
+        });
+      }
+    }
+    return {html, bind};
+  }
   function renderEquipment() {
     const unitItems=equipment.items.filter(item=>item.unit===chosen.entity && [1,3].includes(chosen.type));
     const groups=new Map();
@@ -229,10 +334,10 @@
     const priceLevels=group[0].levels.filter(level=>level.level>=1&&level.level<=10).sort((a,b)=>a.level-b.level);
     const maxLevel=priceLevels[priceLevels.length-1].level;
     const gearDiscount=priceTalentInfo(33).percent;
-    const totalPrice=priceLevels.filter(level=>level.level>1).reduce((total,level)=>({gold:total.gold+discountedGold(level.gold,gearDiscount),dust:total.dust+level.dust}),{gold:0,dust:0});
+    const calculator=gearUpgradeCalculator(group,maxLevel,gearDiscount);
     const samePrices=group.every(item=>priceLevels.every(level=>item.levels.some(other=>other.level===level.level&&other.gold===level.gold&&other.dust===level.dust)));
     const gearPriceRows=priceLevels.map(level=>`<tr class="${level.level===current.level?'selected':''}" data-gear-cost-level="${level.level}"><td><button type="button" class="level-link" aria-label="Выбрать уровень предметов ${level.level}" ${level.level===current.level?'aria-current="true"':''}>${levelBadge(level.level)}</button></td><td>${upgradeStat('icon_gold',level.level===1?'—':format(discountedGold(level.gold,gearDiscount)),'Золото')}</td><td>${upgradeStat('icon_crystal_dust',level.level===1?'—':format(level.dust),'Пыль')}</td></tr>`).join('');
-    const priceSection=`<div class="section-head price-section-head"><h3>Цена прокачки одной вещи</h3>${priceTalentControl(33)}</div><p class="summary-note">${samePrices?'Стоимость одинакова для каждой вещи комплекта.':`Стоимость показана для предмета «${escape(group[0].name)}»; цены других вещей могут отличаться.`}</p><div class="table-wrap"><table class="levels" id="gear-price-table" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>Пыль</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(priceLevels.length/2)}">${gearPriceRows}</tbody></table></div><div class="gear-price-total"><div class="gear-price-total__title"><strong>Итого с 1 до 10 уровня</strong><span>За одну вещь</span></div><div class="gear-price-total__values">${upgradeStat('icon_gold',format(totalPrice.gold),'Золото')}${upgradeStat('icon_crystal_dust',format(totalPrice.dust),'Пыль')}</div></div>`;
+    const priceSection=`<div class="section-head price-section-head"><h3>Цена прокачки одной вещи</h3>${priceTalentControl(33)}</div><p class="summary-note">${samePrices?'Стоимость одинакова для каждой вещи комплекта.':`Стоимость показана для предмета «${escape(group[0].name)}»; цены других вещей могут отличаться.`}</p><div class="table-wrap"><table class="levels" id="gear-price-table" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>Пыль</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(priceLevels.length/2)}">${gearPriceRows}</tbody></table></div>`;
     content.innerHTML=heading+`
       <fieldset id="gear-set" class="set-choices"><legend>Комплект</legend><div class="set-choice-grid">${options}</div></fieldset>
       <div class="gear-controls">
@@ -249,9 +354,11 @@
       </div>
       ${itemsSection}
       <section class="set-bonus-panel"><h3>Бонусы комплекта</h3><div class="bonus-list">${bonuses}</div></section>
-      ${priceSection}`;
+      ${priceSection}
+      ${calculator.html}`;
     document.querySelector('#gear-set').addEventListener('change',event=>{selectedSet=Number(event.target.value);render();document.querySelector('#gear-set input:checked').focus({preventScroll:true})});
     bindPriceTalent(33);
+    calculator.bind();
     function setGearLevel(level, focusSelector) {
       equipmentLevel=Math.max(1,Math.min(maxLevel,level));
       render();
