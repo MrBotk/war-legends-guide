@@ -8,18 +8,21 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="mio.css">
   <link rel="stylesheet" href="ui.css">
-  <link rel="stylesheet" href="theme.css?v=1.15">
-  <link rel="stylesheet" href="compare.css?v=1.17">
+  <link rel="stylesheet" href="theme.css?v=1.18">
+  <link rel="stylesheet" href="compare.css?v=1.18">
   <link rel="stylesheet" href="talents.css?v=1.09">
+  <link rel="stylesheet" href="site-language.css?v=1.18">
+  <script defer src="language-data.js?v=1.18"></script>
+  <script defer src="site-language.js?v=1.18"></script>
   <script defer src="data.js"></script>
   <script defer src="equipment.js"></script>
   <script defer src="equipment-icons.js"></script>
   <script defer src="duel-weapon-data.js?v=1.16"></script>
   <script defer src="duel.js?v=1.16"></script>
-  <script defer src="compare.js?v=1.16"></script>
+  <script defer src="compare.js?v=1.18"></script>
   <script defer src="talents-data.js?v=1.04"></script>
   <script defer src="talents.js?v=1.09"></script>
-  <script defer src="app.js?v=1.16"></script>
+  <script defer src="app.js?v=1.18"></script>
 </head>
 <body>
   <header class="topbar">
@@ -30,7 +33,28 @@
   <main class="layout">
     <button type="button" class="menu-backdrop" id="catalog-backdrop" aria-label="Закрыть каталог" tabindex="-1" hidden></button>
     <aside class="sidebar" id="catalog-sidebar" aria-label="Каталог">
-      <div class="sidebar-head"><div><span class="eyebrow">СПРАВОЧНИК</span></div><span id="count" class="count" aria-label="Найдено записей"></span><button type="button" class="mobile-menu-close" id="catalog-close" aria-label="Закрыть каталог">×</button></div>
+      <div class="sidebar-head">
+        <div class="catalog-language">
+          <span class="eyebrow">СПРАВОЧНИК</span>
+          <label id="site-language-control" class="language-control" data-language-native>
+            <span id="site-language-flag" class="language-flag" data-language="ru" aria-hidden="true"></span>
+            <select id="site-language" aria-label="Язык сайта">
+              <option value="ru" lang="ru">Русский</option>
+              <option value="uk" lang="uk">Українська</option>
+              <option value="en" lang="en">English</option>
+            </select>
+          </label>
+        </div>
+        <button type="button" id="site-language-toggle" class="language-toggle" aria-controls="site-language-control" aria-expanded="true" aria-label="Скрыть переключатель языка" title="Скрыть переключатель языка">
+          <svg class="language-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/>
+          </svg>
+          <svg class="language-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 9c2.5 3.8 5.9 6 10 6s7.5-2.2 10-6M5.5 13l-2 3M12 15v3.5M18.5 13l2 3"/>
+          </svg>
+        </button>
+        <button type="button" class="mobile-menu-close" id="catalog-close" aria-label="Закрыть каталог">×</button>
+      </div>
       <div class="search"><span aria-hidden="true">⌕</span><label class="sr-only" for="search">Поиск в выбранной категории</label><input id="search" type="search" placeholder="Поиск в категории" autocomplete="off"><button type="button" id="clear-search" aria-label="Очистить поиск" hidden>×</button></div>
       <div class="tabs" role="group" aria-label="Категория"><button type="button" data-type="3" class="active" aria-pressed="true"><img src="assets/category_heroes.png" alt="" aria-hidden="true">Герои</button><button type="button" data-type="1" aria-pressed="false"><img src="assets/category_troops.png" alt="" aria-hidden="true">Армия</button><button type="button" data-type="2" aria-pressed="false"><img src="assets/category_buildings.png" alt="" aria-hidden="true">Здания</button><button type="button" data-type="4" aria-pressed="false"><img src="assets/category_scrolls.png" alt="" aria-hidden="true">Свитки</button></div>
       <div id="list" class="entity-list"></div>

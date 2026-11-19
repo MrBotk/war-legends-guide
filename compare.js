@@ -145,7 +145,7 @@
   }
 
   function render(ctx) {
-    const {content, chosen, equipment, equipmentIcons, escape: e, format, picture} = ctx;
+    const {content, chosen, equipment, equipmentIcons, escape: e, format, picture, levelBadge} = ctx;
     const items = equipment.items.filter(item => item.unit === chosen.entity && [1, 3].includes(chosen.type));
     const title = `<div class="breadcrumb">СПРАВОЧНИК <span> / </span> КОНСТРУКТОР ШМОТА <span> / </span> ${e(chosen.name)}</div>
       <header class="compare-heading">
@@ -165,6 +165,9 @@
     const sets = [...new Map(items.map(item => [item.setId, item])).values()]
       .sort((a, b) => a.rarity - b.rarity || (a.setBonuses[0]?.name || '').localeCompare(b.setBonuses[0]?.name || '', 'ru'));
     const hints = equipment.hints[String(chosen.entity)] || {};
+    const minLevel = Math.min(...chosen.levels.map(entry => entry.level));
+    const maxLevel = Math.max(...chosen.levels.map(entry => entry.level));
+    state.level = clamp(state.level, minLevel, maxLevel);
     const builds = state.sides.map(slots => evaluate(chosen, items, hints, slots, state));
     const selected = slot => items.find(item => item.id === slot.id && item.category === slot.category);
     const option = (value, label, current) =>
@@ -262,17 +265,42 @@
     </tbody>`).join('');
     content.innerHTML = title + `<div class="compare-builds">${renderSide(0)}${renderSide(1)}</div>
       <div class="compare-stats">
-        <table class="compare-stat-table">
-          <caption>Характеристики сборок<small>Персонаж ${state.level}-го уровня</small></caption>
+        <div class="compare-stats-head">
+          <h3 id="compare-stats-title">Характеристики сборок</h3>
+          <div class="compare-character-level">
+            <label for="compare-level-range">Уровень <span aria-hidden="true">${levelBadge(state.level, 'compare-level-value')}</span></label>
+            <div class="sheet-level">
+              <input id="compare-level-range" data-compare-character-level type="range" min="${minLevel}" max="${maxLevel}" value="${state.level}" step="1" aria-valuetext="Уровень ${state.level} из ${maxLevel}">
+              <div class="sheet-stepper">
+                <button type="button" data-compare-level-step="-1" aria-label="Предыдущий уровень"${state.level === minLevel ? ' disabled' : ''}>−</button>
+                <button type="button" data-compare-level-step="1" aria-label="Следующий уровень"${state.level === maxLevel ? ' disabled' : ''}>+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <table class="compare-stat-table" aria-labelledby="compare-stats-title">
           <thead><tr><th scope="col">Показатель</th><th scope="col" data-side="1">Сборка 1</th><th scope="col" data-side="2">Сборка 2</th></tr></thead>
           ${statGroups}
         </table>
       </div>`;
     function redraw(focusSelector) {
       render(ctx);
-      content.querySelector(focusSelector)?.focus({preventScroll: true});
+      const target = content.querySelector(focusSelector);
+      (target?.disabled ? content.querySelector('#compare-level-range') : target)?.focus({preventScroll: true});
     }
+    const range = content.querySelector('#compare-level-range');
+    range?.addEventListener('input', () => {
+      content.querySelector('#compare-level-value').textContent = range.value;
+      range.setAttribute('aria-valuetext', `Уровень ${range.value} из ${maxLevel}`);
+    });
     content.onclick = event => {
+      const step = event.target.closest('[data-compare-level-step]');
+      if (step) {
+        const {compareLevelStep} = step.dataset;
+        state.level = clamp(state.level + Number(compareLevelStep), minLevel, maxLevel);
+        redraw(`[data-compare-level-step="${compareLevelStep}"]`);
+        return;
+      }
       const open = event.target.closest('[data-compare-open]');
       const pick = event.target.closest('[data-compare-pick]');
       const clear = event.target.closest('[data-compare-clear]');
@@ -300,7 +328,10 @@
     };
     content.onchange = event => {
       const {dataset, value} = event.target;
-      if (dataset.compareSet !== undefined) {
+      if (dataset.compareCharacterLevel !== undefined) {
+        state.level = clamp(value, minLevel, maxLevel);
+        redraw('#compare-level-range');
+      } else if (dataset.compareSet !== undefined) {
         const i = Number(dataset.compareSet), id = Number(value);
         if (!sets.some(item => item.setId === id)) return;
         state.sides[i] = state.sides[i].map(slot => ({
