@@ -276,6 +276,7 @@
   function render() {
     content.onclick = null;
     content.onchange = null;
+    if(mode==='battle-pass'){window.BattlePassPage.render({content,format,picture,levelBadge});return}
     if(mode==='talents'){window.TalentsPage.render({content,escape,format,picture});return}
     if(mode==='equipment'){renderEquipment();return}
     if(mode==='compare'){window.GearCompare.render({content,chosen,equipment,equipmentIcons,escape,format,picture,levelBadge});return}
@@ -326,7 +327,8 @@
   document.querySelectorAll('.mode').forEach(button=>button.addEventListener('click',()=>{
     mode=button.dataset.mode;
     root.classList.toggle('mode-talents',mode==='talents');
-    if(mode==='talents'&&catalogOpen)closeCatalog();
+    root.classList.toggle('mode-battle-pass',mode==='battle-pass');
+    if((mode==='talents'||mode==='battle-pass')&&catalogOpen)closeCatalog();
     if(usesEquipmentCatalog()&&![1,3].includes(chosen.type)){
       chosen=lastEquipmentChoice;
       type=chosen.type;
@@ -344,7 +346,7 @@
     renderList();
     render();
     const label={upgrade:'Прокачка',equipment:'Экипировка',compare:'Конструктор шмота'};
-    document.querySelector('#selection-status').textContent=mode==='talents'?'Древо талантов':`${label[mode]}: ${chosen.name}`;
+    document.querySelector('#selection-status').textContent=mode==='battle-pass'?'Расчёт БП':mode==='talents'?'Древо талантов':`${label[mode]}: ${chosen.name}`;
   }));
   search.addEventListener('input',renderList);
   document.querySelector('#clear-search').addEventListener('click',()=>{search.value='';renderList();search.focus()});
