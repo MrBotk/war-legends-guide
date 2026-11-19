@@ -9,19 +9,23 @@
   <link rel="stylesheet" href="mio.css">
   <link rel="stylesheet" href="ui.css">
   <link rel="stylesheet" href="theme.css?v=1.15">
+  <link rel="stylesheet" href="compare.css?v=1.16">
   <link rel="stylesheet" href="talents.css?v=1.09">
   <script defer src="data.js"></script>
   <script defer src="equipment.js"></script>
   <script defer src="equipment-icons.js"></script>
+  <script defer src="duel-weapon-data.js?v=1.16"></script>
+  <script defer src="duel.js?v=1.16"></script>
+  <script defer src="compare.js?v=1.16"></script>
   <script defer src="talents-data.js?v=1.04"></script>
   <script defer src="talents.js?v=1.09"></script>
-  <script defer src="app.js?v=1.15"></script>
+  <script defer src="app.js?v=1.16"></script>
 </head>
 <body>
   <header class="topbar">
     <button type="button" class="mobile-menu-toggle" id="catalog-toggle" aria-label="Открыть каталог" aria-controls="catalog-sidebar" aria-expanded="false"><img src="assets/icon_mobile_menu.png" alt="" aria-hidden="true"></button>
     <a class="brand" href="#" aria-label="War Legends — на главную"><img class="brand-logo" src="assets/war_legends_logo.png" alt="War Legends"></a>
-    <nav class="modes" aria-label="Раздел сайта"><button type="button" class="mode active" data-mode="upgrade" aria-pressed="true"><img src="assets/nav_upgrade_book.png" alt="" aria-hidden="true">Прокачка</button><button type="button" class="mode" data-mode="equipment" aria-pressed="false"><img src="assets/nav_equipment_backpack.png" alt="" aria-hidden="true">Экипировка</button><button type="button" class="mode" data-mode="talents" aria-pressed="false"><img src="assets/icon_talents.png" alt="" aria-hidden="true">Таланты</button></nav>
+    <nav class="modes" aria-label="Раздел сайта"><button type="button" class="mode active" data-mode="upgrade" aria-pressed="true"><img src="assets/nav_upgrade_book.png" alt="" aria-hidden="true">Прокачка</button><button type="button" class="mode" data-mode="equipment" aria-pressed="false"><img src="assets/nav_equipment_backpack.png" alt="" aria-hidden="true">Экипировка</button><button type="button" class="mode" data-mode="compare" aria-pressed="false"><img src="assets/icon_deltafield_dmg.png" alt="" aria-hidden="true"><span>Конструктор<br>шмота</span></button><button type="button" class="mode" data-mode="talents" aria-pressed="false"><img src="assets/icon_talents.png" alt="" aria-hidden="true">Таланты</button></nav>
   </header>
   <main class="layout">
     <button type="button" class="menu-backdrop" id="catalog-backdrop" aria-label="Закрыть каталог" tabindex="-1" hidden></button>

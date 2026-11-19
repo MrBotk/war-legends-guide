@@ -277,6 +277,7 @@
     content.onchange = null;
     if(mode==='talents'){window.TalentsPage.render({content,escape,format,picture});return}
     if(mode==='equipment'){renderEquipment();return}
+    if(mode==='compare'){window.GearCompare.render({content,chosen,equipment,equipmentIcons,escape,format,picture});return}
     const item=chosen, current=findLevel(selectedLevel) || item.levels[0], prev=findLevel(current.level-1);
     document.querySelector('#selection-status').textContent=`${item.name}, уровень ${current.level}`;
     const maxLevel=Math.max(...item.levels.map(level=>level.level));
@@ -311,16 +312,39 @@
     }
     document.querySelectorAll('[data-level]').forEach(row=>row.addEventListener('click',()=>{selectedLevel=Number(row.dataset.level);render()}));
   }
+  const usesEquipmentCatalog = () => mode === 'equipment' || mode === 'compare';
   function syncTabs(){
     document.querySelectorAll('.tabs button').forEach(button=>{
       const category=Number(button.dataset.type), active=category===type;
-      button.hidden=mode==='equipment' && ![1,3].includes(category);
+      button.hidden=usesEquipmentCatalog() && ![1,3].includes(category);
       button.classList.toggle('active',active);
       button.setAttribute('aria-pressed',String(active));
     });
   }
-  document.querySelectorAll('.tabs button').forEach(button=>button.addEventListener('click',()=>{const nextType=Number(button.dataset.type);if(mode==='equipment'&&![1,3].includes(nextType))return;type=nextType;search.value='';chosen=records.find(item=>item.type===type);if([1,3].includes(type))lastEquipmentChoice=chosen;selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1;syncTabs();renderList();render();document.querySelector('#selection-status').textContent=`${names[type]}: ${chosen.name}`}));
-  document.querySelectorAll('.mode').forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.mode;root.classList.toggle('mode-talents',mode==='talents');if(mode==='talents'&&catalogOpen)closeCatalog();if(mode==='equipment'&&![1,3].includes(chosen.type)){chosen=lastEquipmentChoice;type=chosen.type;search.value='';selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1}document.querySelectorAll('.mode').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button))});syncTabs();renderList();render();document.querySelector('#selection-status').textContent=mode==='talents'?'Древо талантов':`${mode==='equipment'?'Экипировка':'Прокачка'}: ${chosen.name}`}));
+  document.querySelectorAll('.tabs button').forEach(button=>button.addEventListener('click',()=>{const nextType=Number(button.dataset.type);if(usesEquipmentCatalog()&&![1,3].includes(nextType))return;type=nextType;search.value='';chosen=records.find(item=>item.type===type);if([1,3].includes(type))lastEquipmentChoice=chosen;selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1;syncTabs();renderList();render();document.querySelector('#selection-status').textContent=`${names[type]}: ${chosen.name}`}));
+  document.querySelectorAll('.mode').forEach(button=>button.addEventListener('click',()=>{
+    mode=button.dataset.mode;
+    root.classList.toggle('mode-talents',mode==='talents');
+    if(mode==='talents'&&catalogOpen)closeCatalog();
+    if(usesEquipmentCatalog()&&![1,3].includes(chosen.type)){
+      chosen=lastEquipmentChoice;
+      type=chosen.type;
+      search.value='';
+      selectedLevel=1;
+      buildingTier=1;
+      selectedSet=null;
+      equipmentLevel=1;
+    }
+    document.querySelectorAll('.mode').forEach(b=>{
+      b.classList.toggle('active',b===button);
+      b.setAttribute('aria-pressed',String(b===button));
+    });
+    syncTabs();
+    renderList();
+    render();
+    const label={upgrade:'Прокачка',equipment:'Экипировка',compare:'Конструктор шмота'};
+    document.querySelector('#selection-status').textContent=mode==='talents'?'Древо талантов':`${label[mode]}: ${chosen.name}`;
+  }));
   search.addEventListener('input',renderList);
   document.querySelector('#clear-search').addEventListener('click',()=>{search.value='';renderList();search.focus()});
   list.addEventListener('click',event=>{const button=event.target.closest('[data-id]');if(!button)return;chosen=records.find(item=>item.id===button.dataset.id);if([1,3].includes(chosen.type))lastEquipmentChoice=chosen;selectedLevel=1;buildingTier=1;selectedSet=null;equipmentLevel=1;renderList();render();document.querySelector('#selection-status').textContent=`Выбрано: ${chosen.name}`;if(mobileCatalog()){closeCatalog();content.scrollIntoView({block:'start'})}});
