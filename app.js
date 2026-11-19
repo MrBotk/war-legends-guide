@@ -179,32 +179,98 @@
     for(const item of unitItems){if(!groups.has(item.setId))groups.set(item.setId,[]);groups.get(item.setId).push(item)}
     const sets=[...groups.entries()].sort((a,b)=>a[1][0].rarity-b[1][0].rarity || (a[1][0].setBonuses[0]?.name||'').localeCompare(b[1][0].setBonuses[0]?.name||'','ru'));
     if(!groups.has(selectedSet))selectedSet=sets.length?sets[0][0]:null;
-    const options=sets.map(([id,items])=>`<option value="${id}" ${id===selectedSet?'selected':''}>${escape(items[0].setBonuses[0]?.name || 'Комплект')} · ${escape((rarity[items[0].rarity] || 'Неизвестный').toLocaleLowerCase('ru'))}</option>`).join('');
+    const options=sets.map(([id,items])=>{
+      const first=items[0];
+      const icon=items.find(item=>equipmentIcons.has(item.icon))?.icon;
+      const name=first.setBonuses[0]?.name || 'Комплект';
+      return `<label class="set-choice" data-rarity="${escape(first.rarity)}">
+        <input type="radio" name="gear-set" value="${id}" ${id===selectedSet?'checked':''}>
+        <span class="set-choice-card">
+          ${icon?picture(icon,'set-choice-icon',''):'<span class="set-choice-icon"></span>'}
+          <span class="set-choice-copy"><b>${escape(name)}</b><small>${escape(equipmentRarity[first.rarity] || 'НЕИЗВЕСТНОЕ')}</small></span>
+        </span>
+      </label>`;
+    }).join('');
     const group=groups.get(selectedSet) || [];
-    const heading=`<div class="breadcrumb">СПРАВОЧНИК <span> / </span> ЭКИПИРОВКА <span> / </span> ${escape(chosen.name)}</div><div class="gear-heading"><div><span class="eyebrow">СНАРЯЖЕНИЕ / ${escape(faction(chosen).toUpperCase())}</span><h2>Экипировка · ${escape(chosen.name)}</h2></div>${picture(chosen.icon,'gear-unit-icon',chosen.name)}</div>`;
+    const heading=`<div class="breadcrumb">СПРАВОЧНИК <span> / </span> ЭКИПИРОВКА <span> / </span> ${escape(chosen.name)}</div><div class="gear-heading"><div><span class="eyebrow">СНАРЯЖЕНИЕ / ${escape(faction(chosen).toUpperCase())}</span><h2>Экипировка → ${escape(chosen.name)}</h2></div>${picture(chosen.icon,'gear-unit-icon',chosen.name)}</div>`;
     if(!group.length){content.innerHTML=heading+'<div class="notice">Экипировка для этого персонажа пока недоступна. Выберите другого героя или юнита.</div>';return}
     const current=group[0].levels.find(level=>level.level===equipmentLevel) || group[0].levels[0];
-    const levelOptions=Array.from({length:10},(_,i)=>`<button type="button" data-gear-level="${i+1}" aria-label="Уровень ${i+1}" aria-pressed="${i+1===current.level}">${levelBadge(i+1)}</button>`).join('');
     document.querySelector('#selection-status').textContent=`Экипировка: ${chosen.name}, уровень вещей ${current.level}`;
     const missingIcons=group.filter(item=>!equipmentIcons.has(item.icon)).length;
     const cards=group.map(item=>{
       const level=item.levels.find(l=>l.level===current.level) || item.levels[0];
       const hasIcon=equipmentIcons.has(item.icon);
-      return `<article class="gear-card"><div class="gear-card-top"><div class="gear-image ${hasIcon?'':'gear-image--missing'}"><span ${hasIcon?'hidden':''}>ИКОНКА<br>НЕДОСТУПНА</span>${hasIcon?`<img src="assets/${encodeURIComponent(item.icon)}.png" alt="" onerror="this.hidden=true;this.previousElementSibling.hidden=false">`:''}</div><div><span class="gear-quality" data-rarity="${escape(item.rarity)}">${escape(equipmentRarity[item.rarity] || 'НЕИЗВЕСТНОЕ')}</span><h4>${escape(item.name)}</h4><span class="gear-level">УРОВЕНЬ ${levelBadge(level.level)}</span></div></div><div class="gear-stats">${visibleEquipmentActions(level.actions).map(action=>{const a=actionText(action);return `<div class="gear-stat"><span class="stat-with-icon">${statPicture(a.name,action.field)}<span>${escape(a.name)}</span></span><b>${escape(a.value)}</b></div>`}).join('')}</div></article>`;
+      const stats=visibleEquipmentActions(level.actions).map(action=>{
+        const {name,value}=actionText(action);
+        return `<div class="gear-stat"><span class="stat-with-icon">${statPicture(name,action.field)}<span>${escape(name)}</span></span><b>${escape(value)}</b></div>`;
+      }).join('');
+      return `<article class="gear-card" data-rarity="${escape(item.rarity)}">
+        <header class="gear-card-top">
+          <div class="gear-image ${hasIcon?'':'gear-image--missing'}">
+            <span ${hasIcon?'hidden':''}>ИКОНКА<br>НЕДОСТУПНА</span>
+            ${hasIcon?`<img src="assets/${encodeURIComponent(item.icon)}.png" alt="" onerror="this.hidden=true;this.previousElementSibling.hidden=false">`:''}
+          </div>
+          <div class="gear-card-label">
+            <span class="gear-quality" data-rarity="${escape(item.rarity)}">${escape(equipmentRarity[item.rarity] || 'НЕИЗВЕСТНОЕ')}</span>
+            <h4>${escape(item.name)}</h4>
+          </div>
+          <span class="gear-card-level" aria-label="Уровень ${level.level}">${levelBadge(level.level)}</span>
+        </header>
+        <div class="gear-stats">${stats}</div>
+      </article>`;
     }).join('');
-    const bonuses=group[0].setBonuses.map(b=>`<div class="set-bonus ${current.level>=b.level?'unlocked':''}"><div class="bonus-number">${levelBadge(b.level)}</div><div><div class="bonus-title">Все вещи ${b.level}-го уровня</div>${visibleEquipmentActions(b.actions).map(a=>{const text=actionText(a);return `<div class="bonus-effect"><span class="stat-with-icon">${statPicture(text.name,a.field)}<span>${escape(text.name)}</span></span><b>${escape(text.value)}</b></div>`}).join('')}</div><span class="bonus-state">${current.level>=b.level?'ДОСТУПЕН':'ПОЗЖЕ'}</span></div>`).join('');
+    const itemsSection=`<section class="gear-items">
+      <h3>Вещи комплекта</h3>
+      ${missingIcons?`<div class="notice gear-notice">Иконки для ${missingIcons} из ${group.length} вещей этого комплекта пока недоступны.</div>`:''}
+      <div class="gear-grid">${cards}</div>
+    </section>`;
+    const bonuses=group[0].setBonuses.map(b=>`<div class="set-bonus ${current.level>=b.level?'unlocked':''}"><div class="set-bonus-heading">${levelBadge(b.level)}<div><div class="bonus-title">Уровень ${b.level}</div><span class="bonus-state">${current.level>=b.level?'Доступен':'Ещё закрыт'}</span></div></div><div class="set-bonus-effects">${visibleEquipmentActions(b.actions).map(a=>{const text=actionText(a);return `<div class="bonus-effect"><span class="stat-with-icon">${statPicture(text.name,a.field)}<span>${escape(text.name)}</span></span><b>${escape(text.value)}</b></div>`}).join('')}</div></div>`).join('');
     const priceLevels=group[0].levels.filter(level=>level.level>=1&&level.level<=10).sort((a,b)=>a.level-b.level);
+    const maxLevel=priceLevels[priceLevels.length-1].level;
     const gearDiscount=priceTalentInfo(33).percent;
     const totalPrice=priceLevels.filter(level=>level.level>1).reduce((total,level)=>({gold:total.gold+discountedGold(level.gold,gearDiscount),dust:total.dust+level.dust}),{gold:0,dust:0});
     const samePrices=group.every(item=>priceLevels.every(level=>item.levels.some(other=>other.level===level.level&&other.gold===level.gold&&other.dust===level.dust)));
     const gearPriceRows=priceLevels.map(level=>`<tr class="${level.level===current.level?'selected':''}" data-gear-cost-level="${level.level}"><td><button type="button" class="level-link" aria-label="Выбрать уровень предметов ${level.level}" ${level.level===current.level?'aria-current="true"':''}>${levelBadge(level.level)}</button></td><td>${upgradeStat('icon_gold',level.level===1?'—':format(discountedGold(level.gold,gearDiscount)),'Золото')}</td><td>${upgradeStat('icon_crystal_dust',level.level===1?'—':format(level.dust),'Пыль')}</td></tr>`).join('');
-    const priceSection=`<div class="section-head price-section-head"><div><span class="eyebrow">03 / ПРОКАЧКА</span><h3>Цена прокачки одной вещи</h3></div>${priceTalentControl(33)}</div><p class="summary-note">${samePrices?'Стоимость одинакова для каждой вещи комплекта.':`Стоимость показана для предмета «${escape(group[0].name)}»; цены других вещей могут отличаться.`}</p><div class="table-wrap"><table class="levels" id="gear-price-table" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>Пыль</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(priceLevels.length/2)}">${gearPriceRows}</tbody></table></div><div class="gear-price-total"><div class="gear-price-total__title"><strong>Итого с 1 до 10 уровня</strong><span>За одну вещь</span></div><div class="gear-price-total__values">${upgradeStat('icon_gold',format(totalPrice.gold),'Золото')}${upgradeStat('icon_crystal_dust',format(totalPrice.dust),'Пыль')}</div></div>`;
-    content.innerHTML=heading+`<div class="gear-controls"><label>Комплект<select id="gear-set">${options}</select></label><div class="gear-level-picker"><span class="gear-level-picker__label">Уровень предметов</span><details class="gear-level-select" id="gear-level-picker"><summary id="gear-level-summary" aria-label="Уровень предметов ${current.level}. Выбрать уровень">${levelBadge(current.level)}<span>${current.level} уровень</span><span class="gear-level-chevron" aria-hidden="true">▾</span></summary><div class="gear-level-options" id="gear-level-options" role="group" aria-label="Выбрать уровень предметов">${levelOptions}</div></details></div></div>${missingIcons?`<div class="notice gear-notice">Иконки для ${missingIcons} из ${group.length} вещей этого комплекта пока недоступны.</div>`:''}<div class="section-head"><div><span class="eyebrow">01 / ПРЕДМЕТЫ</span><h3>Вещи комплекта</h3></div><span class="hint">${group.length} предмета</span></div><div class="gear-grid">${cards}</div><div class="section-head"><div><span class="eyebrow">02 / БОНУС КОМПЛЕКТА</span><h3>${escape(group[0].setBonuses[0]?.name || 'Комплект')}</h3></div></div><div class="bonus-list">${bonuses}</div>${priceSection}`;
-    document.querySelector('#gear-set').addEventListener('change',event=>{selectedSet=Number(event.target.value);render()});
+    const priceSection=`<div class="section-head price-section-head"><h3>Цена прокачки одной вещи</h3>${priceTalentControl(33)}</div><p class="summary-note">${samePrices?'Стоимость одинакова для каждой вещи комплекта.':`Стоимость показана для предмета «${escape(group[0].name)}»; цены других вещей могут отличаться.`}</p><div class="table-wrap"><table class="levels" id="gear-price-table" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>Пыль</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(priceLevels.length/2)}">${gearPriceRows}</tbody></table></div><div class="gear-price-total"><div class="gear-price-total__title"><strong>Итого с 1 до 10 уровня</strong><span>За одну вещь</span></div><div class="gear-price-total__values">${upgradeStat('icon_gold',format(totalPrice.gold),'Золото')}${upgradeStat('icon_crystal_dust',format(totalPrice.dust),'Пыль')}</div></div>`;
+    content.innerHTML=heading+`
+      <fieldset id="gear-set" class="set-choices"><legend>Комплект</legend><div class="set-choice-grid">${options}</div></fieldset>
+      <div class="gear-controls">
+        <div class="gear-level-slider">
+          <label for="gear-level-range">Уровень предметов <span aria-hidden="true">${levelBadge(current.level,'gear-level-value')}</span></label>
+          <div class="sheet-level">
+            <input id="gear-level-range" type="range" min="1" max="${maxLevel}" value="${current.level}" step="1" aria-valuetext="Уровень ${current.level} из ${maxLevel}">
+            <div class="sheet-stepper">
+              <button type="button" id="gear-level-prev" aria-label="Предыдущий уровень" ${current.level<=1?'disabled':''}>−</button>
+              <button type="button" id="gear-level-next" aria-label="Следующий уровень" ${current.level>=maxLevel?'disabled':''}>+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${itemsSection}
+      <section class="set-bonus-panel"><h3>Бонусы комплекта</h3><div class="bonus-list">${bonuses}</div></section>
+      ${priceSection}`;
+    document.querySelector('#gear-set').addEventListener('change',event=>{selectedSet=Number(event.target.value);render();document.querySelector('#gear-set input:checked').focus({preventScroll:true})});
     bindPriceTalent(33);
-    document.querySelector('#gear-level-options').addEventListener('click',event=>{const selected=event.target.closest('[data-gear-level]');if(!selected)return;equipmentLevel=Number(selected.dataset.gearLevel);render();document.querySelector('#gear-level-summary').focus({preventScroll:true})});
-    document.querySelector('#gear-level-options').addEventListener('keydown',event=>{if(event.key==='Escape'){document.querySelector('#gear-level-picker').open=false;document.querySelector('#gear-level-summary').focus({preventScroll:true})}});
-    document.querySelector('#gear-price-table').addEventListener('click',event=>{const selected=event.target.closest('[data-gear-cost-level]');if(!selected)return;equipmentLevel=Number(selected.dataset.gearCostLevel);render();document.querySelector('#gear-price-table [aria-current="true"]').focus({preventScroll:true})});
+    function setGearLevel(level, focusSelector) {
+      equipmentLevel=Math.max(1,Math.min(maxLevel,level));
+      render();
+      const next=document.querySelector(focusSelector);
+      (next.disabled ? document.querySelector('#gear-level-range') : next).focus({preventScroll:true});
+    }
+    const range=document.querySelector('#gear-level-range');
+    range.addEventListener('input',event=>{
+      const value=event.target.value;
+      document.querySelector('#gear-level-value').textContent=value;
+      range.setAttribute('aria-valuetext',`Уровень ${value} из ${maxLevel}`);
+    });
+    range.addEventListener('change',event=>setGearLevel(Number(event.target.value),'#gear-level-range'));
+    for (const [selector,step] of [['#gear-level-prev',-1],['#gear-level-next',1]]) {
+      document.querySelector(selector).addEventListener('click',()=>setGearLevel(current.level+step,selector));
+    }
+    document.querySelector('#gear-price-table').addEventListener('click',event=>{
+      const row=event.target.closest('[data-gear-cost-level]');
+      if(row)setGearLevel(Number(row.dataset.gearCostLevel),'#gear-price-table [aria-current="true"]');
+    });
   }
   function render() {
     content.onclick = null;
