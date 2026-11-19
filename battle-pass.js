@@ -97,7 +97,7 @@
             </div>
             <div class="bp-fields">
               ${n('current', 'Текущий уровень', 1, max)}
-              ${n('target', 'Целевой уровень', 1, max)}
+              ${n('target', 'Желаемый уровень', 1, max)}
               ${n('days', 'Осталось дней', 0, 366)}
             </div>
             <details class="bp-extra"${Number(inputs.partial) > 0 ? ' open' : ''}>
