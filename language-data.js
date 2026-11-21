@@ -8,3 +8,26 @@ Object.assign(window.SITE_TRANSLATIONS, {
   'Стоимость прокачки с 1-го уровня': ['Вартість покращень із 1-го рівня', 'Upgrade cost from level 1'],
   'Выбрано:': ['Вибрано:', 'Selected:']
 });
+
+Object.assign(window.SITE_TRANSLATIONS, {
+  "Скелет-воин": [
+    "Скелет-воїн",
+    "Skeleton Warrior"
+  ],
+  "Скелет-воин не помнит, кем был при жизни. Теперь он служит только Тьме. Некромант дал ему цель, и он будет следовать ей, даже если хозяин падёт в битве.": [
+    "Скелет-воїн не пам’ятає, ким був за життя. Тепер він служить лише Темряві. Некромант дав йому мету, і він дотримуватиметься її, навіть якщо його господар впаде в бою.",
+    "A dead skeleton warrior summoned by a necromancer. The skeleton does not remember who it used to be back when it was alive. Now it serves the Dark and only the Dark. The necromancer gave it a purpose, and it will follow it even if its master falls in battle."
+  ],
+  "Призываемый юнит": [
+    "Прикликаний юніт",
+    "Summoned unit"
+  ],
+  "Призыватель:": [
+    "Прикликач:",
+    "Summoner:"
+  ],
+  "Уровень призывателя": [
+    "Рівень прикликача",
+    "Summoner level"
+  ]
+});

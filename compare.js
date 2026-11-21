@@ -268,7 +268,7 @@
         <div class="compare-stats-head">
           <h3 id="compare-stats-title">Характеристики сборок</h3>
           <div class="compare-character-level">
-            <label for="compare-level-range">Уровень <span aria-hidden="true">${levelBadge(state.level, 'compare-level-value')}</span></label>
+            <label for="compare-level-range">${chosen.summonedBy ? 'Уровень призывателя' : 'Уровень'} <span aria-hidden="true">${levelBadge(state.level, 'compare-level-value')}</span></label>
             <div class="sheet-level">
               <input id="compare-level-range" data-compare-character-level type="range" min="${minLevel}" max="${maxLevel}" value="${state.level}" step="1" aria-valuetext="Уровень ${state.level} из ${maxLevel}">
               <div class="sheet-stepper">

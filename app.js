@@ -81,6 +81,7 @@
   const statPicture = (name, field = '') => picture(characteristicIcon(name,field), 'stat-icon');
   const upgradeStat=(icon,value,label,id='')=>`<div class="upgrade-stat">${picture(icon,'upgrade-stat__icon')}<span class="upgrade-stat__copy"><b${id?` id="${escape(id)}"`:''}>${escape(value)}</b><small>${escape(label)}</small></span></div>`;
   const faction = item => item.faction === 1 ? 'Свет' : item.faction === 2 ? 'Тьма' : 'Нейтральные';
+  const cardKind = item => item.summonedBy ? 'Призываемый юнит' : rarity[item.rarity] || '';
   const findLevel = level => chosen.levels.find(entry => entry.level === level);
   function priceTalentInfo(id) {
     const talent=window.TALENTS_DATA?.types[id];
@@ -113,7 +114,7 @@
       .some(name => name?.toLocaleLowerCase('ru').includes(query))).sort((a,b)=>factionRank(a)-factionRank(b) || (a.gameOrder ?? Infinity)-(b.gameOrder ?? Infinity) || a.name.localeCompare(b.name,'ru'));
     document.querySelector('#clear-search').hidden = !query;
     let previousFaction = null;
-    list.innerHTML = visible.length ? visible.map(item => {const factionIcon=item.faction===1?'icon_light_faction_logo':item.faction===2?'icon_dark_faction_logo':null;const heading=item.faction!==previousFaction?`<div class="faction-heading" data-faction="${escape(item.faction)}">${factionIcon?`<img src="assets/${factionIcon}.webp" alt="" aria-hidden="true">`:''}${escape(faction(item))}</div>`:'';previousFaction=item.faction;return `${heading}<button type="button" class="entity ${item.id===chosen.id?'active':''}" data-id="${escape(item.id)}" aria-pressed="${item.id===chosen.id}">${picture(item.icon,'','')}<span><b>${escape(item.name)}</b><small data-rarity="${escape(item.rarity)}">${escape(rarity[item.rarity] || '')}</small></span><span class="arrow" aria-hidden="true">›</span></button>`}).join('') : '<div class="empty"><b>В этой категории ничего не найдено</b><p>Проверьте имя или выберите другую категорию.</p></div>';
+    list.innerHTML = visible.length ? visible.map(item => {const factionIcon=item.faction===1?'icon_light_faction_logo':item.faction===2?'icon_dark_faction_logo':null;const heading=item.faction!==previousFaction?`<div class="faction-heading" data-faction="${escape(item.faction)}">${factionIcon?`<img src="assets/${factionIcon}.webp" alt="" aria-hidden="true">`:''}${escape(faction(item))}</div>`:'';previousFaction=item.faction;return `${heading}<button type="button" class="entity ${item.id===chosen.id?'active':''}" data-id="${escape(item.id)}" aria-pressed="${item.id===chosen.id}">${picture(item.icon,'','')}<span><b>${escape(item.name)}</b><small data-rarity="${escape(item.rarity)}">${escape(cardKind(item))}</small></span><span class="arrow" aria-hidden="true">›</span></button>`}).join('') : '<div class="empty"><b>В этой категории ничего не найдено</b><p>Проверьте имя или выберите другую категорию.</p></div>';
   }
   function statCard(stat, previous) {
     const delta = previous && typeof previous.value === 'number' ? stat.value - previous.value : 0;
@@ -159,7 +160,7 @@
       const change=600/(interval+action.value)-600/interval;
       return {name:`Скорость движения${state}`,value:`${change>0?'+':''}${format(change,1)} /мин`};
     }
-    const name=action.field==='speed' && hint?.factor == null ? fallback[0] : (hint?.name || fallback[0]);
+    const name=(action.field==='speed' || action.field==='round_len') && hint?.factor == null ? fallback[0] : (hint?.name || fallback[0]);
     const targets=chosen.type===3 ? heroAbilityTargets[chosen.entity] : null;
     const key=`${action.type}:${action.id}`;
     const ability=targets?.ultimate.includes(key) ? 'Ультимейт' : targets?.passive.includes(key) ? 'Пассивка' : '';
@@ -380,6 +381,13 @@
       if(row)setGearLevel(Number(row.dataset.gearCostLevel),'#gear-price-table [aria-current="true"]');
     });
   }
+  function upgradePriceSection(item,current,maxLevel,talentId) {
+    const isScroll=item.type===4;
+    const discount=priceTalentInfo(talentId).percent;
+    const totalCost=item.levels.filter(level=>level.level>1).reduce((total,level)=>({gold:total.gold+discountedGold(level.gold,discount),resource:total.resource+((isScroll?level.books:level.cards)||0)}),{gold:0,resource:0});
+    const rows=item.levels.map(level=>{const resource=isScroll?level.books:level.cards;return `<tr class="${level.level===current.level?'selected':''}" data-level="${level.level}"><td><button type="button" class="level-link" aria-label="Выбрать уровень ${level.level}" ${level.level===current.level?'aria-current="true"':''}>${levelBadge(level.level)}</button></td><td>${upgradeStat('icon_gold',level.level===1?'Открытие':format(discountedGold(level.gold,discount)),'Золото')}</td><td>${upgradeStat(isScroll?'icon_books':'icon_cards',level.level===1?'—':isScroll&&!resource?'—':format(resource),isScroll?'Книги':'Карточки')}</td></tr>`}).join('');
+    return `<div class="section-head price-section-head"><div><span class="eyebrow">02 / ТАБЛИЦА УЛУЧШЕНИЙ</span><h3>Все уровни</h3></div>${priceTalentControl(talentId)}</div><div class="table-wrap"><table class="levels" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>${isScroll?'Книги':'Карточки'}</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(item.levels.length/2)}">${rows}</tbody></table></div><div class="gear-price-total"><div class="gear-price-total__title"><strong>Итого с 1 до ${maxLevel} уровня</strong><span>За прокачку</span></div><div class="gear-price-total__values">${upgradeStat('icon_gold',format(totalCost.gold),'Золото')}${upgradeStat(isScroll?'icon_books':'icon_cards',format(totalCost.resource),isScroll?'Книги':'Карточки')}</div></div>`;
+  }
   function render() {
     content.onclick = null;
     content.onchange = null;
@@ -391,13 +399,11 @@
     document.querySelector('#selection-status').textContent=`${item.name}, уровень ${current.level}`;
     const maxLevel=Math.max(...item.levels.map(level=>level.level));
     const tierStats = level => level?.statsByTier?.[String(buildingTier)] || level?.stats || [];
-    const stats=tierStats(current).length ? tierStats(current) : current.core;
-    const previous=prev ? (tierStats(prev).length ? tierStats(prev) : prev.core) : [];
-    const isScroll=item.type===4;
+    const stats=tierStats(current).length ? tierStats(current) : current.core || [];
+    const previous=prev ? (tierStats(prev).length ? tierStats(prev) : prev.core || []) : [];
     const talentId=priceTalentForType[item.type];
-    const discount=priceTalentInfo(talentId).percent;
-    const totalCost=item.levels.filter(level=>level.level>1).reduce((total,level)=>({gold:total.gold+discountedGold(level.gold,discount),resource:total.resource+((isScroll?level.books:level.cards)||0)}),{gold:0,resource:0});
-    const rows=item.levels.map(level=>{const resource=isScroll?level.books:level.cards;return `<tr class="${level.level===current.level?'selected':''}" data-level="${level.level}"><td><button type="button" class="level-link" aria-label="Выбрать уровень ${level.level}" ${level.level===current.level?'aria-current="true"':''}>${levelBadge(level.level)}</button></td><td>${upgradeStat('icon_gold',level.level===1?'Открытие':format(discountedGold(level.gold,discount)),'Золото')}</td><td>${upgradeStat(isScroll?'icon_books':'icon_cards',level.level===1?'—':isScroll&&!resource?'—':format(resource),isScroll?'Книги':'Карточки')}</td></tr>`}).join('');
+    const summoner = records.find(record => record.id === item.summonedBy);
+    const levelLabel = summoner ? 'Уровень призывателя' : 'Уровень';
     let details='';
     if(stats.length){
       const grouped=new Map();
@@ -407,11 +413,11 @@
       details=groups.map(([group,entries])=>`<section class="game-stat-group"><h4 class="game-stat-title">${escape(group)}</h4><div class="game-stat-grid">${entries.map(s=>{const old=previous.find(p=>p.name===s.name&&(p.group||'Основные')===(s.group||'Основные'));const delta=old && typeof old.value==='number' && typeof s.value==='number' ? s.value-old.value : 0;const displayed=typeof s.value==='number'?format(s.value,s.digits ?? 0):escape(s.value);return `<div class="game-stat">${statPicture(s.name)}<div class="game-stat-copy"><div class="game-stat-value">${displayed}${s.unit?` <span>${escape(s.unit)}</span>`:''}${Math.abs(delta)>1e-9?` <em>${delta>0?'+':''}${format(delta,2)}</em>`:''}</div><div class="game-stat-label">${escape(s.name)}</div></div></div>`}).join('')}</div></section>`).join('');
     }
     content.innerHTML=`<div class="breadcrumb">СПРАВОЧНИК <span> / </span> ${escape(names[item.type])} <span> / </span> ${escape(item.name)}</div>
-      <div class="hero"><div class="portrait">${picture(item.icon,'',item.name)}</div><div><div class="title-label">${escape(names[item.type].toUpperCase())} · ${escape(faction(item).toUpperCase())}</div><h2>${escape(item.name)}</h2><p class="description">${escape(item.description || 'Характеристики и прокачка.')}</p>${item.iconAvailable?'':'<p class="summary-note">Иконка карточки пока недоступна.</p>'}</div><div class="hero-badge" data-rarity="${escape(item.rarity)}">${escape((rarity[item.rarity]||'').toUpperCase())}</div></div>
-      <div class="section-head"><div><span class="eyebrow">01 / ХАРАКТЕРИСТИКИ</span><h3>Характеристики</h3></div><span class="hint">Прирост показан относительно предыдущего уровня</span></div>
-      <div class="game-stats-panel"><div class="game-stats-top"><div class="sheet-identity"><span class="game-stats-kicker">${escape(names[item.type].toUpperCase())} / ${escape(item.name.toUpperCase())}</span><strong class="sheet-level-label">Уровень ${levelBadge(current.level,'level-value')}</strong></div><div class="sheet-level"><input id="level-range" type="range" min="1" max="${maxLevel}" value="${current.level}" step="1" aria-label="Уровень ${escape(item.name)}" aria-valuetext="Уровень ${current.level} из ${maxLevel}"><div class="sheet-stepper"><button type="button" id="level-prev" aria-label="Предыдущий уровень" ${current.level<=1?'disabled':''}>−</button><button type="button" id="level-next" aria-label="Следующий уровень" ${current.level>=maxLevel?'disabled':''}>+</button></div></div>${item.buildingTiers?`<label class="tier-control">ТИР ЗДАНИЯ<select id="building-tier" aria-label="Боевой тир здания">${Array.from({length:item.buildingTiers},(_,i)=>`<option value="${i+1}" ${i+1===buildingTier?'selected':''}>Тир ${i+1}</option>`).join('')}</select></label>`:''}</div>${details || '<div class="notice sheet-notice">Подробные характеристики этой карточки пока недоступны.</div>'}</div>
-      <div class="section-head price-section-head"><div><span class="eyebrow">02 / ТАБЛИЦА УЛУЧШЕНИЙ</span><h3>Все уровни</h3></div>${priceTalentControl(talentId)}</div><div class="table-wrap"><table class="levels" role="table"><thead role="rowgroup" class="sr-only"><tr role="row"><th>Уровень</th><th>Золото</th><th>${isScroll?'Книги':'Карточки'}</th></tr></thead><tbody role="rowgroup" style="--level-rows:${Math.ceil(item.levels.length/2)}">${rows}</tbody></table></div><div class="gear-price-total"><div class="gear-price-total__title"><strong>Итого с 1 до ${maxLevel} уровня</strong><span>За прокачку</span></div><div class="gear-price-total__values">${upgradeStat('icon_gold',format(totalCost.gold),'Золото')}${upgradeStat(isScroll?'icon_books':'icon_cards',format(totalCost.resource),isScroll?'Книги':'Карточки')}</div></div>`;
-    bindPriceTalent(talentId);
+      <div class="hero"><div class="portrait">${picture(item.icon,'',item.name)}</div><div><div class="title-label">${escape(names[item.type].toUpperCase())} · ${escape(faction(item).toUpperCase())}</div><h2>${escape(item.name)}</h2><p class="description">${escape(item.description || 'Характеристики и прокачка.')}</p>${item.iconAvailable?'':'<p class="summary-note">Иконка карточки пока недоступна.</p>'}</div><div class="hero-badge" data-rarity="${escape(item.rarity)}">${escape(cardKind(item).toUpperCase())}</div></div>
+      <div class="section-head"><div><span class="eyebrow">01 / ХАРАКТЕРИСТИКИ</span><h3>Характеристики</h3></div><span class="hint">${summoner ? `<span>Призыватель:</span> ${escape(summoner.name)}` : 'Прирост показан относительно предыдущего уровня'}</span></div>
+      <div class="game-stats-panel"><div class="game-stats-top"><div class="sheet-identity"><span class="game-stats-kicker">${escape(names[item.type].toUpperCase())} / ${escape(item.name.toUpperCase())}</span><strong class="sheet-level-label">${levelLabel} ${levelBadge(current.level,'level-value')}</strong></div><div class="sheet-level"><input id="level-range" type="range" min="1" max="${maxLevel}" value="${current.level}" step="1" aria-label="${escape(summoner ? levelLabel : `Уровень ${item.name}`)}" aria-valuetext="Уровень ${current.level} из ${maxLevel}"><div class="sheet-stepper"><button type="button" id="level-prev" aria-label="Предыдущий уровень" ${current.level<=1?'disabled':''}>−</button><button type="button" id="level-next" aria-label="Следующий уровень" ${current.level>=maxLevel?'disabled':''}>+</button></div></div>${item.buildingTiers?`<label class="tier-control">ТИР ЗДАНИЯ<select id="building-tier" aria-label="Боевой тир здания">${Array.from({length:item.buildingTiers},(_,i)=>`<option value="${i+1}" ${i+1===buildingTier?'selected':''}>Тир ${i+1}</option>`).join('')}</select></label>`:''}</div>${details || '<div class="notice sheet-notice">Подробные характеристики этой карточки пока недоступны.</div>'}</div>
+      ${summoner ? '' : upgradePriceSection(item,current,maxLevel,talentId)}`;
+    if (!summoner) bindPriceTalent(talentId);
     if(item.buildingTiers) document.querySelector('#building-tier').addEventListener('change',event=>{buildingTier=Number(event.target.value);render()});
     const range=document.querySelector('#level-range');
     range.addEventListener('input', event => {document.querySelector('#level-value').textContent=event.target.value;range.setAttribute('aria-valuetext',`Уровень ${event.target.value} из ${maxLevel}`)});
