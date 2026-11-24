@@ -3,7 +3,7 @@
   const {records} = window.GAME_DATA;
   const equipment = window.EQUIPMENT_DATA;
   const equipmentIcons = new Set(window.EQUIPMENT_ICON_NAMES || []);
-  const names = {1:'Армия',2:'Здания',3:'Герои',4:'Свитки'};
+  const names = {1:'Армия',2:'Здания',3:'Герои',4:'Свитки',5:'Нейтралы'};
   const rarity = {1:'Обычный',2:'Редкий',3:'Эпический'};
   const equipmentRarity = {1:'ОБЫЧНОЕ',2:'РЕДКОЕ',3:'ЭПИЧЕСКОЕ'};
   const list = document.querySelector('#list');
@@ -81,7 +81,7 @@
   const statPicture = (name, field = '') => picture(characteristicIcon(name,field), 'stat-icon');
   const upgradeStat=(icon,value,label,id='')=>`<div class="upgrade-stat">${picture(icon,'upgrade-stat__icon')}<span class="upgrade-stat__copy"><b${id?` id="${escape(id)}"`:''}>${escape(value)}</b><small>${escape(label)}</small></span></div>`;
   const faction = item => item.faction === 1 ? 'Свет' : item.faction === 2 ? 'Тьма' : 'Нейтральные';
-  const cardKind = item => item.summonedBy ? 'Призываемый юнит' : rarity[item.rarity] || '';
+  const cardKind = item => item.neutralVariant || (item.summonedBy ? 'Призываемый юнит' : rarity[item.rarity] || '');
   const findLevel = level => chosen.levels.find(entry => entry.level === level);
   function priceTalentInfo(id) {
     const talent=window.TALENTS_DATA?.types[id];
@@ -403,7 +403,8 @@
     const previous=prev ? (tierStats(prev).length ? tierStats(prev) : prev.core || []) : [];
     const talentId=priceTalentForType[item.type];
     const summoner = records.find(record => record.id === item.summonedBy);
-    const levelLabel = summoner ? 'Уровень призывателя' : 'Уровень';
+    const isNeutral = item.type === 5;
+    const levelLabel = isNeutral ? 'Боевой уровень' : summoner ? 'Уровень призывателя' : 'Уровень';
     let details='';
     if(stats.length){
       const grouped=new Map();
@@ -415,9 +416,9 @@
     content.innerHTML=`<div class="breadcrumb">СПРАВОЧНИК <span> / </span> ${escape(names[item.type])} <span> / </span> ${escape(item.name)}</div>
       <div class="hero"><div class="portrait">${picture(item.icon,'',item.name)}</div><div><div class="title-label">${escape(names[item.type].toUpperCase())} · ${escape(faction(item).toUpperCase())}</div><h2>${escape(item.name)}</h2><p class="description">${escape(item.description || 'Характеристики и прокачка.')}</p>${item.iconAvailable?'':'<p class="summary-note">Иконка карточки пока недоступна.</p>'}</div><div class="hero-badge" data-rarity="${escape(item.rarity)}">${escape(cardKind(item).toUpperCase())}</div></div>
       <div class="section-head"><div><span class="eyebrow">01 / ХАРАКТЕРИСТИКИ</span><h3>Характеристики</h3></div><span class="hint">${summoner ? `<span>Призыватель:</span> ${escape(summoner.name)}` : 'Прирост показан относительно предыдущего уровня'}</span></div>
-      <div class="game-stats-panel"><div class="game-stats-top"><div class="sheet-identity"><span class="game-stats-kicker">${escape(names[item.type].toUpperCase())} / ${escape(item.name.toUpperCase())}</span><strong class="sheet-level-label">${levelLabel} ${levelBadge(current.level,'level-value')}</strong></div><div class="sheet-level"><input id="level-range" type="range" min="1" max="${maxLevel}" value="${current.level}" step="1" aria-label="${escape(summoner ? levelLabel : `Уровень ${item.name}`)}" aria-valuetext="Уровень ${current.level} из ${maxLevel}"><div class="sheet-stepper"><button type="button" id="level-prev" aria-label="Предыдущий уровень" ${current.level<=1?'disabled':''}>−</button><button type="button" id="level-next" aria-label="Следующий уровень" ${current.level>=maxLevel?'disabled':''}>+</button></div></div>${item.buildingTiers?`<label class="tier-control">ТИР ЗДАНИЯ<select id="building-tier" aria-label="Боевой тир здания">${Array.from({length:item.buildingTiers},(_,i)=>`<option value="${i+1}" ${i+1===buildingTier?'selected':''}>Тир ${i+1}</option>`).join('')}</select></label>`:''}</div>${details || '<div class="notice sheet-notice">Подробные характеристики этой карточки пока недоступны.</div>'}</div>
-      ${summoner ? '' : upgradePriceSection(item,current,maxLevel,talentId)}`;
-    if (!summoner) bindPriceTalent(talentId);
+      <div class="game-stats-panel"><div class="game-stats-top"><div class="sheet-identity"><span class="game-stats-kicker">${escape(names[item.type].toUpperCase())} / ${escape(item.name.toUpperCase())}</span><strong class="sheet-level-label">${levelLabel} ${levelBadge(current.level,'level-value')}</strong></div><div class="sheet-level"><input id="level-range" type="range" min="1" max="${maxLevel}" value="${current.level}" step="1" aria-label="${escape(summoner || isNeutral ? levelLabel : `Уровень ${item.name}`)}" aria-valuetext="Уровень ${current.level} из ${maxLevel}"><div class="sheet-stepper"><button type="button" id="level-prev" aria-label="Предыдущий уровень" ${current.level<=1?'disabled':''}>−</button><button type="button" id="level-next" aria-label="Следующий уровень" ${current.level>=maxLevel?'disabled':''}>+</button></div></div>${item.buildingTiers?`<label class="tier-control">ТИР ЗДАНИЯ<select id="building-tier" aria-label="Боевой тир здания">${Array.from({length:item.buildingTiers},(_,i)=>`<option value="${i+1}" ${i+1===buildingTier?'selected':''}>Тир ${i+1}</option>`).join('')}</select></label>`:''}</div>${details || '<div class="notice sheet-notice">Подробные характеристики этой карточки пока недоступны.</div>'}</div>
+      ${summoner || isNeutral ? '' : upgradePriceSection(item,current,maxLevel,talentId)}`;
+    if (!summoner && !isNeutral) bindPriceTalent(talentId);
     if(item.buildingTiers) document.querySelector('#building-tier').addEventListener('change',event=>{buildingTier=Number(event.target.value);render()});
     const range=document.querySelector('#level-range');
     range.addEventListener('input', event => {document.querySelector('#level-value').textContent=event.target.value;range.setAttribute('aria-valuetext',`Уровень ${event.target.value} из ${maxLevel}`)});
