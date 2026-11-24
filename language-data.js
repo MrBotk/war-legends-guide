@@ -106,3 +106,41 @@ Object.assign(window.SITE_TRANSLATIONS, {
     "Area of effect"
   ]
 });
+
+Object.assign(window.SITE_TRANSLATIONS, {
+  "Ожог": [
+    "Опік",
+    "Burn"
+  ],
+  "Урон от ожога": [
+    "Шкода від опіку",
+    "Burn damage"
+  ],
+  "Урон за полное действие": [
+    "Шкода за повну тривалість",
+    "Damage over full duration"
+  ],
+  "/сек": [
+    "/с",
+    "/sec"
+  ]
+});
+
+Object.assign(window.SITE_TRANSLATIONS, {
+  "Тип атаки": [
+    "Тип атаки",
+    "Attack pattern"
+  ],
+  "По площади": [
+    "По площі",
+    "Area of effect"
+  ],
+  "По сектору": [
+    "По сектору",
+    "Cone"
+  ],
+  "Бонус урона по зданиям": [
+    "Бонус шкоди по будівлях",
+    "Bonus damage against buildings"
+  ]
+});
