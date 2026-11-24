@@ -99,9 +99,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .search span, #clear-search { color: #c5d4e4; }
 .search input, .search input::placeholder { color: #c0d0e0; }
 #clear-search:hover { background: #375572; }
-.tabs { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
-.tabs button { grid-column: span 2; min-width: 0; min-height: 72px; aspect-ratio: 1; flex-direction: column; gap: 6px; padding: 8px 3px; font-size: 11px; line-height: 1.1; }
-.tabs button img { width: 32px; height: 32px; }
+.tabs { width: 75%; margin-inline: auto; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4.5px; margin-bottom: 6px; }
+.tabs button { grid-column: span 2; min-width: 0; min-height: 54px; aspect-ratio: 1; flex-direction: column; gap: 4.5px; padding: 6px 2.25px; font-size: 8.25px; line-height: 1.1; }
+.tabs button img { width: 24px; height: 24px; }
 .tabs button[data-type="5"] img { filter: grayscale(1) brightness(1.5); }
 .tabs:not(:has(button[hidden])) button:nth-child(4) { grid-column: 2 / span 2; }
 .tabs:not(:has(button[hidden])) button:nth-child(5) { grid-column: 4 / span 2; }
